@@ -22,6 +22,6 @@
 %%
 %% Local Functions
 %%
-
+%% Bangla was here !!!
 plus(N) ->
 	N+1.
