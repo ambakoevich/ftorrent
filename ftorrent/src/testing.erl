@@ -24,4 +24,4 @@
 %%
 %% Bangla was here !!!
 plus(N) ->
-	N+1.
+	N+2.
