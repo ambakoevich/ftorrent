@@ -69,7 +69,7 @@ get_lines(S, Acc) ->
 
 
 
-%% erlang->bencode
+%% erlang to bencode
 from_erlang({str, Str}) ->
     Size = erlang:integer_to_list(length(Str)),
     Size ++ ":" ++ Str;
@@ -94,10 +94,8 @@ sha1(X) ->
     crypto:sha(X).
         
 
-
-%% wtf with utf8 ? [NOT WORKING]
+%% 
 my_split(N, Xs) -> my_split(N, Xs, []).
-
 my_split(0, Rest, Acc) -> {lists:reverse(Acc), Rest};
 my_split(N, [], Acc) -> {lists:reverse(Acc), []};
 my_split(N, [X,Y|Xs], Acc) when X == 195 -> my_split(N - 1, Xs, [X,Y|Acc]);
@@ -123,4 +121,3 @@ list_to_hexstr([H|T]) ->
 
 bin_to_hexstr(Bin) ->
     list_to_hexstr(binary_to_list(Bin)).
-
