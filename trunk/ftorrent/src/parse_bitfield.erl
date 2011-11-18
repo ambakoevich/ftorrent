@@ -1,8 +1,7 @@
 -module(parse_bitfield).
 -export([decimal_to_bit/2, concat_list/1, define_index/2]).
 
-%%TESTCOMMENT by ZARIF HERE WAS BANGLA
-%%TESTCOMMENT by Rashid2
+
 %% The following codes are used to extract number of 'have' pieces from the bitfield received from a peer reply. 
 %%
 
