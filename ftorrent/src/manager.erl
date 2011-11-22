@@ -46,7 +46,7 @@ handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     %%io:format(" limit is ~p~n",[Limit]),
     %% Pid = spawn(?MODULE,loop,[Ip,Port, Hash, 0]),
     Pid = connection_server:start(Ip,Port, Hash),
-    List = [Ip,"\n"|Acc],
+    List = [Ip|Acc],
     %% Pid ! {start},
     handshake_peers(T, List, Hash, Limit - 1);
 

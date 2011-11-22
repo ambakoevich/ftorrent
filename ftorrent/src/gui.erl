@@ -2,6 +2,7 @@
 -author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/2]).
 -import(info,[about/2,help/2]).
+-import(gui_util,[create_list_ctrl/2]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
@@ -96,15 +97,12 @@ new_window()->
     wxNotebook:addPage(Notebook, Win2, "Tracker", []),
     wxNotebook:setPageImage(Notebook, 1,4),
  %% Third tab field ("Peers").
-    Win3 = wxPanel:new(Notebook, []),
-    wxPanel:setBackgroundColour(Win3, {128,128,128}),
-    Win3Text = wxStaticText:new(Win3, ?wxID_ANY, "    
-     Peers List: ",[{pos, {50, 100}}]),
-    wxStaticText:setForegroundColour(Win3Text, ?wxWHITE),
-    Sizer3 = wxBoxSizer:new(?wxHORIZONTAL),
-    wxSizer:add(Sizer3, Win3Text),
-    wxPanel:setSizer(Win3, Sizer3),
-    wxNotebook:addPage(Notebook, Win3, "Peers", []),
+    Win3 = wxListCtrl:new(Notebook, [{style, ?wxLC_REPORT}]),
+    wxListCtrl:insertColumn(Win3, 0, "IP List",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 605}]),
+    wxNotebook:addPage(Notebook, Win3, "Peer List", []),
+    wxListCtrl:setBackgroundColour(Win3, {128,128,128}),
+    wxListCtrl:setTextColour(Win3, ?wxWHITE),
     wxNotebook:setPageImage(Notebook, 2,2),
  %% Fourth tab field ("File").
     Win4 = wxPanel:new(Notebook, []),
@@ -191,6 +189,9 @@ new_window()->
 %%%%%% Setting the OuterSizer into the Panel and show the Frame.
     
     wxPanel:setSizer(Panel,OuterSizer),
+    wxFrame:createStatusBar(Frame),
+    wxFrame:setStatusText(Frame, "             Download: 1.2 kB/s   |      Upload: 0.1 kB/s    "),
+    wxFrame:fit(Frame),
     wxFrame:show(Frame),
 
 %%%%%% Create the listeners.
@@ -200,12 +201,12 @@ new_window()->
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3Text}.
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
 loop(State,Manager)->
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3Text}= State,
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}= State,
 
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
@@ -235,7 +236,7 @@ loop(State,Manager)->
             loop(State, Manager);
 	#wx{id= 3, event=#wxCommand{type=command_button_clicked}} ->
 	    %%  do something ..
-            io:format("ButtonStop clicked ~n", []),
+            io:format("ButtonCancel clicked ~n", []),
             loop(State, Manager);
 	#wx{id= 4, event=#wxCommand{type=command_button_clicked}} ->
 	    about(4, Frame),   %% Event when button About is clicked.
@@ -246,11 +247,14 @@ loop(State,Manager)->
 	{table, Torrent_info} ->
 	    wxStaticText:setLabel(StaticText11, db:read("FileName")),
 	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
-	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n   Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n   Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
+	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n  
+             Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n  
+             Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
 	    wxStaticText:setLabel(Win2Text, "\n   Tracker: " ++ db:read("announce")),
 	    loop(State, Manager);
 	{peer_list, Peer_list} ->
-	    wxStaticText:setLabel(Win3Text, "\n   Peers: \n" ++ Peer_list),
+	    %% wxStaticText:setLabel(Win3Text, "\n   Peers: \n" ++ Peer_list),
+	    create_list_ctrl(Win3, Peer_list),
 	    loop(State, Manager)
     end.
 
