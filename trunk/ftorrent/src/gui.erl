@@ -50,7 +50,7 @@ new_window()->
     wxBitmapButton:connect(ButtonCancel,command_button_clicked),
     wxBitmapButton:setToolTip(ButtonOpen,  "Add torrent file "),
     wxBitmapButton:setToolTip(ButtonPause,     "Start torrent"),
-    wxBitmapButton:setToolTip(ButtonCancel,     "Stop torrent"),
+    wxBitmapButton:setToolTip(ButtonCancel,   "Cancel torrent"),
     Range = 100,
     Gauge = wxGauge:new(Panel,1,Range,[{size,{260,-1}},{style,?wxGA_HORIZONTAL}]),
     Value = 0,
