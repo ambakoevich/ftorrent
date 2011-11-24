@@ -12,7 +12,8 @@ connect(Ip,Port,Hash) ->
 	    self() ! {ok, connected, Socket, Hash};
 
 	{error, econnrefused} ->
-	    self() ! {error, drop_connection, Ip}
+	    self() ! {error, drop_connection, Ip};
+	{error,etimedout} ->{error, drop_connection, Ip}
     end.
 	
 

@@ -7,20 +7,11 @@
 -include("constants.hrl").
 
 
-interested_loop(Socket)->
-    receive
-        {tcp,_,<<?CHOKE>>} ->
-	    io:format("~nRESPONSE: ~w SHOCKED~n",[<<?CHOKE>>]),
-	    interested_loop(Socket);
-	{tcp,_,<<?UNCHOKE>>} ->
-            self() ! {ok,unchoke},
-	    io:format("~nRESPONSE: ~w UNSHOCK~n",[<<?UNCHOKE>>])
- end.
 
 receiver(Socket,Piece,Size)->
     receive
 	{tcp, _,<<?PIECE, ChunkNumber:32, Offset:32, Block/binary>>} -> 
-	    io:format("~nOffset: ~p~n", [Offset]),
+	    io:format("~nOffset: ~p ~p ~p~n", [Offset, ChunkNumber, Socket]),
 	    LastBlockSize = Size rem ?LENGTH,
 	    case LastBlockSize of 
 		0 when Offset/=(Size-?LENGTH)-> ok = gen_tcp:send(Socket, [<<?REQUEST, ChunkNumber:32, (Offset+?LENGTH):32, ?LENGTH:32>>]),
@@ -41,7 +32,8 @@ receiver(Socket,Piece,Size)->
 	    end;
 
         {piece_downloaded, ChunkNumber}-> self() ! {ok, piece_downloaded, ChunkNumber, Piece}
-    after 30000 ->   self() ! {error, no_response}	
+    %% after 30000 ->   self() ! {error, no_response}
+			 
     end.
 
 
@@ -56,5 +48,6 @@ request_piece(Socket,ChunkNumber)->
      ok = gen_tcp:send(Socket, [<<?REQUEST, ChunkNumber:32, ?BEGIN:32, ?LENGTH:32>>]).
 						  
 
-
+send_keepAlive(Socket)->
+    ok = gen_tcp:send(Socket, [?KEEP_ALIVE]).
 
