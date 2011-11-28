@@ -20,7 +20,6 @@ start(Torrent) ->
     insert_infohash_binary(Torrent),
     insert_infohash_hex(Torrent),
     insert_piece_info(Data),
-    insert_hash(Data),
     db.
 
 
@@ -78,10 +77,11 @@ insert_infohash_hex(Torrent)->
     write("Info Hash Hex", bencode:bin_to_hexstr(info_hash(Torrent)),db).
 
 %%retreive hash from the torrent file and insert it to the ets table
-insert_hash(Data)->
-        {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
-{value,{{str,_},{str,Pieces}}}=lists:keysearch({str,"pieces"},1,Info_list), 
-   pm ! {ok,Pieces}.
+get_hash(Torrent)->
+     {{dico, Data},_} = readtorrent(Torrent),
+    {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
+    {value,{{str,_},{str,Pieces}}}=lists:keysearch({str,"pieces"},1,Info_list),
+    Pieces.
 
 
 %%retreive peice binary of the hashed part of the torrent file and insert it to ets table
