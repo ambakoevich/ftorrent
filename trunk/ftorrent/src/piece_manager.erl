@@ -6,47 +6,60 @@
 
 start()->
     io:format("piece_manager started..."),
-    loop([],[{[],self()}],[], []).
+    loop([],[{[],self()}],[], [], []).
     
-loop(WishList, DownloadedList, PeersList, Inprocess)->
+loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     receive
+        {ok, Hash}-> 
+	    loop(WishList, DownloadedList, PeersList, Inprocess, Hash);
         {bitfield,Pid, Bitfield} ->
             io:format("~nNewBit: ~p  ~n", [filter:join_set([{Bitfield, Pid}|PeersList], DownloadedList)]),
 	    self() ! {check_interested, Pid},
 	    UpdatedWishList = filter:join_set([{Bitfield, Pid}|PeersList], join_pieces(DownloadedList, Inprocess)),
-	    loop(UpdatedWishList, DownloadedList, [{Bitfield, Pid}|PeersList], Inprocess);
+	    loop(UpdatedWishList, DownloadedList, [{Bitfield, Pid}|PeersList], Inprocess,HashList);
 
 	{have, Pid, Piece} -> 
 	    io:format("~nHAVE: ~p~n", [Piece]),
 	    UpdatedPeesList = filter:update_have(PeersList,Piece,Pid,[]),
 	    UpdatedWishList = filter:join_set(UpdatedPeesList, join_pieces(DownloadedList, Inprocess)),
-	    loop(UpdatedWishList, DownloadedList, UpdatedPeesList,Inprocess );
+	    loop(UpdatedWishList, DownloadedList, UpdatedPeesList,Inprocess,HashList );
 
 	{select_piece, Pid} ->
 	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Inprocess))),
 	    PieceNumber =  select_piece(UpdatedWishList, Pid),
-	    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess]);	  
+	    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);	  
      
-	{check_piece, Pid, ChunkNumber, Piece} ->
-	    %% io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
-	    self() ! {piece_validated, Pid, ChunkNumber, Piece},
-	    loop(WishList, DownloadedList, PeersList, Inprocess);
 	
-	{piece_validated, Pid, ChunkNumber, Piece}->
-	    io:format("~n piece_validated"),
-	    io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
-	    [{L, _}] = DownloadedList,
-            Downloaded =  [{[ChunkNumber|L], self()}],
-            Updated_Process = remove_piece(Piece,[Piece|Inprocess]),
-	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),
-	    loop(UpdatedWishList,Downloaded, PeersList, Updated_Process);
+	{check_piece, Pid, ChunkNumber, Piece}->
+             io:format("~n >>>>>>>>>>>>>>>>>>>>>  here"),
+            case validate_hash:find_hash(HashList,crypto:sha(Piece)) of
+		
+		false ->
+		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  here 2"),
+		    Updated_Process = remove_piece(Piece,[Piece|Inprocess]),
+		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Updated_Process))),
+		    pm ! {select_piece, Pid},
+		    loop(UpdatedWishList,DownloadedList, PeersList, Updated_Process,HashList);
+	
+		true ->
+		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  here 3"),
+		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  piece_validated"),
+		    io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
+		    [{L, _}] = DownloadedList,
+		    Downloaded =  [{[ChunkNumber|L], self()}],
+		    Updated_Process = remove_piece(Piece,[Piece|Inprocess]),
+		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),	   
+		    loop(UpdatedWishList,Downloaded, PeersList, Updated_Process,HashList)
+	    end;
+	
+    
 
 	{check_interested, Pid} -> 
 	    case filter:lookup(WishList, Pid) of 
 		pid_not_there -> not_interested(Pid);
 		_  -> interested(Pid)
 	    end,
-	    loop(WishList, DownloadedList, PeersList,Inprocess)
+	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
 
     end. 
 
