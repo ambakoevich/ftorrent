@@ -1,9 +1,8 @@
-%%GUI
 -module(gui).
 -author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/2]).
--import(info,[about/2,help/2]).
--import(gui_util,[create_list_ctrl/2]).
+-import(gui_info,[about/2,help/2]).
+-import(gui_util,[create_list_ctrl/2,check/1,file_image/2]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
@@ -21,18 +20,14 @@ new_window()->
     wxPanel:setBackgroundColour(Panel,{204,204,204}),
 
 %%%%%% Creating the Widgets which will be showed on the frame/panel. 
-
+    
     BitmapPause  = wxBitmap:new("Pause.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapCancel = wxBitmap:new("Cancel.png",   [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapOpen   = wxBitmap:new("Openfile.png", [{type,?wxBITMAP_TYPE_PNG}]),
     Logo         = wxBitmap:new("Logo.png",     [{type,?wxBITMAP_TYPE_PNG}]),
-    %% Image        = wxBitmap:new("image.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
-    %% Audio        = wxBitmap:new("audio.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
-    %% Video        = wxBitmap:new("video.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
     BitmapAbout  = wxBitmap:new("about.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapHelp   = wxBitmap:new("help.png",     [{type,?wxBITMAP_TYPE_PNG}]),
-    Type         = Logo,
-    StaticBitmap = wxStaticBitmap:new(Panel,12,Type),
+    StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo),
     StaticText   = wxStaticText:new  (Panel, 21,"Download status", []),
     StaticText1  = wxStaticText:new  (Panel, 31,"Name: ", []),
     StaticText11 = wxStaticText:new  (Panel, 41,"     Music.mp3 ", []),
@@ -56,7 +51,6 @@ new_window()->
     Gauge = wxGauge:new(Panel,1,Range,[{size,{260,-1}},{style,?wxGA_HORIZONTAL}]),
     Value = 0,
     wxGauge:setValue(Gauge, Value),
-
     Font1 = wxFont:new(15, ?wxMODERN, ?wxNORMAL, ?wxBOLD),
     Font2 = wxFont:new(10, ?wxNORMAL, ?wxNORMAL, ?wxBOLD),
     wxStaticText:setFont(StaticText1,Font1),
@@ -74,30 +68,27 @@ new_window()->
     wxImageList:add(IL, wxArtProvider:getBitmap("wxART_FILE_OPEN",       [{size, {16,16}}])),
     wxImageList:add(IL, wxArtProvider:getBitmap("wxART_EXECUTABLE_FILE", [{size, {16,16}}])),
     wxNotebook:assignImageList(Notebook, IL),
- %% First tab field ("General").
+    %% First tab field ("General").
     Win1 = wxPanel:new(Notebook, []),
     wxPanel:setBackgroundColour(Win1, {128,128,128}),
-    Win1Text = wxStaticText:new(Win1, ?wxID_ANY, "        
-       Download:     ...
-       Availability: ... ",[{pos, {50, 100}}]),
+    Win1Text = wxStaticText:new(Win1, ?wxID_ANY, "",[{pos, {50, 100}}]),
     wxStaticText:setForegroundColour(Win1Text, ?wxWHITE),
     Sizer1 = wxBoxSizer:new(?wxHORIZONTAL),
     wxSizer:add(Sizer1, Win1Text),
     wxPanel:setSizer(Win1, Sizer1),
     wxNotebook:addPage(Notebook, Win1, "General", []),
     wxNotebook:setPageImage(Notebook, 0, 1),   
- %% Second tab field ("Tracker").
+    %% Second tab field ("Tracker").
     Win2 = wxPanel:new(Notebook, []),
     wxPanel:setBackgroundColour(Win2, {128,128,128}),
-    Win2Text = wxStaticText:new(Win2, ?wxID_ANY, "
-    Information.",[{pos, {50, 100}}]),
+    Win2Text = wxStaticText:new(Win2, ?wxID_ANY, "",[{pos, {50, 100}}]),
     wxStaticText:setForegroundColour(Win2Text, ?wxWHITE),
     Sizer2 = wxBoxSizer:new(?wxHORIZONTAL),
     wxSizer:add(Sizer2, Win2Text),
     wxPanel:setSizer(Win2, Sizer2),
     wxNotebook:addPage(Notebook, Win2, "Tracker", []),
     wxNotebook:setPageImage(Notebook, 1,4),
- %% Third tab field ("Peers").
+    %% Third tab field ("Peers").
     Win3 = wxListCtrl:new(Notebook, [{style, ?wxLC_REPORT}]),
     wxListCtrl:insertColumn(Win3, 0, "IP List",
 	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 605}]),
@@ -105,28 +96,16 @@ new_window()->
     wxListCtrl:setBackgroundColour(Win3, {128,128,128}),
     wxListCtrl:setTextColour(Win3, ?wxWHITE),
     wxNotebook:setPageImage(Notebook, 2,2),
- %% Fourth tab field ("File").
+    %% Fourth tab field ("File").
     Win4 = wxPanel:new(Notebook, []),
     wxPanel:setBackgroundColour(Win4, {128,128,128}),
-    Win4Text = wxStaticText:new(Win4, ?wxID_ANY, " 
-     File Name : .mp3",[{pos, {50, 100}}]),
+    Win4Text = wxStaticText:new(Win4, ?wxID_ANY, "",[{pos, {50, 100}}]),
     wxStaticText:setForegroundColour(Win4Text, ?wxWHITE),
     Sizer4 = wxBoxSizer:new(?wxHORIZONTAL),
     wxSizer:add(Sizer4, Win4Text),
     wxPanel:setSizer(Win4, Sizer4),
     wxNotebook:addPage(Notebook, Win4, "File", []),
     wxNotebook:setPageImage(Notebook, 3, 3),
- %% Fifth tab field ("Speed").
-    Win5 = wxPanel:new(Notebook, []),
-    wxPanel:setBackgroundColour(Win5, {128,128,128}),
-    Win5Text = wxStaticText:new(Win5, ?wxID_ANY, "
-    speed",[{pos, {50, 100}}]),
-    wxStaticText:setForegroundColour(Win5Text, ?wxWHITE),
-    Sizer5 = wxBoxSizer:new(?wxHORIZONTAL),
-    wxSizer:add(Sizer5, Win5Text),
-    wxPanel:setSizer(Win5, Sizer5),
-    wxNotebook:addPage(Notebook, Win5, "Speed",[]),
-    wxNotebook:setPageImage(Notebook, 4, 0),
 
 %%%%%% Create Sizers.
     
@@ -183,47 +162,44 @@ new_window()->
     wxSizer:addSpacer(OuterSizer ,  10),
     wxSizer:addSpacer(MainSizer  ,  40),
     wxSizer:add(OuterSizer,MainSizer   , []),
-    wxSizer:add(OuterSizer,Notebook,[{proportion, 1},{flag, ?wxEXPAND}]),
-    wxNotebook:connect(Notebook, command_notebook_page_changed,
-		       [{skip, true}]),
+    wxSizer:add(OuterSizer,Notebook,[{proportion, 1}, {flag, ?wxEXPAND}]),
+    wxNotebook:connect(Notebook, command_notebook_page_changed, [{skip, true}]),
 
 %%%%%% Setting the OuterSizer into the Panel and show the Frame.
     
     wxPanel:setSizer(Panel,OuterSizer),
     wxFrame:createStatusBar(Frame),
-    wxFrame:setStatusText(Frame, "             Download: 1.2 kB/s   |      Upload: 0.1 kB/s    "),
+    wxFrame:setStatusText(Frame, "             Download: 1.2 kB/s"),
     wxFrame:fit(Frame),
     wxFrame:show(Frame),
 
 %%%%%% Create the listeners.
 
-     wxFrame:connect( Frame, close_window),
+     wxFrame:connect(Frame, close_window),
      wxPanel:connect(Panel, command_button_clicked),
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}.
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
 loop(State,Manager)->
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}= State,
-
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}= State,
+    
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
 	    Manager ! {stop},
-            io:format("~p Frame destroyed, memory released.. ~n",[self()]),
-             wxFrame:destroy(Frame),  %% Close the window.
+	    wxFrame:destroy(Frame),  %% Close the window.
             ok;       %% Exit the loop.
         #wx{id= 1, event=#wxCommand{type=command_button_clicked}} ->
 	    FD=wxFileDialog:new(Frame,[{message,"   Select torrent file to open  "}]),
 	    case wxFileDialog:showModal(FD) of
 		?wxID_OK ->      %% Open is clicked show the Dialog.
-		    Filename = wxFileDialog:getFilename(FD),
-		    Path = wxFileDialog:getPath(FD),     
-		    io:format("File Path: ~p~n ", [Path]),
-		    io:format(" File name: ~p~n " , [Filename] ),
+		    Filename = wxFileDialog:getFilename(FD),   
 		    Manager ! {start_manager, Filename, self()},
+		    %%self() ! {change_icon},
+		    %%file_image(Panel, StaticBitmap, FileName),
 		    wxFileDialog:destroy(FD);
 	   	_ ->             %% Cancel is clicked close Dialog.
 		    wxFileDialog:destroy(FD),
@@ -231,13 +207,9 @@ loop(State,Manager)->
 	    end,
             loop(State, Manager);
 	#wx{id= 2, event=#wxCommand{type=command_button_clicked}} ->
-	    %%  do something ..
-            io:format("ButtonStart clicked ~n",[]),
 	    Manager ! {connect, self()},
             loop(State, Manager);
 	#wx{id= 3, event=#wxCommand{type=command_button_clicked}} ->
-	    %%  do something ..
-            io:format("ButtonCancel clicked ~n", []),
             loop(State, Manager);
 	#wx{id= 4, event=#wxCommand{type=command_button_clicked}} ->
 	    about(4, Frame),   %% Event when button About is clicked.
@@ -252,9 +224,9 @@ loop(State,Manager)->
              Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n  
              Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
 	    wxStaticText:setLabel(Win2Text, "\n   Tracker: " ++ db:read("announce")),
+	    file_image(StaticBitmap, db:read("FileName")),
 	    loop(State, Manager);
 	{peer_list, Peer_list} ->
-	    %% wxStaticText:setLabel(Win3Text, "\n   Peers: \n" ++ Peer_list),
 	    create_list_ctrl(Win3, Peer_list),
 	    loop(State, Manager)
     end.
