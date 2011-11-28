@@ -1,3 +1,4 @@
+%% PARSING A BITFIELD
 -module(parse_bitfield).
 -export([decimal_to_bit/2, concat_list/1, define_index/2]).
 

@@ -1,3 +1,4 @@
+%%BENCODING
 -module(bencode).
 -compile(export_all).
 

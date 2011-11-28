@@ -1,3 +1,4 @@
+%%HISTOGRAM
 -module(histogram).
 -export([gen_hist/3, sort_hist/2]).
 %%-import(seq_erlang, [new/0, destroy/1, write/3, read/2]).

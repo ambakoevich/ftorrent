@@ -1,6 +1,6 @@
 %% Author: Zarif Jawad,Paulius Vysniauskas,David Giorgidze
 %% Created: 2011-11-20
-
+%% Comment: Main Manager.
 -module(manager).
 -include("constants.hrl").
 -compile(export_all).
@@ -24,7 +24,6 @@ loop(Torrent_info) ->
 	    io:format("Starting manager~n"),
 	    register(pm, spawn(piece_manager, start,[])),
 	    register(io, spawn(io_manager, start,[])),
-	    pm ! {ok,db:get_hash(Torrent)},
 	    GUI_Pid ! {table, Torrent_info_new},
 	    loop(Torrent_info_new);
 	{connect, GUI_Pid} ->
