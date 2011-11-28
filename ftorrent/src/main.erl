@@ -3,6 +3,7 @@
 %% Running Main Application.
 -module(main).
 -compile(export_all).
+-include("constants.hrl").
 
 start() ->
     Manager = spawn(manager, start, []),

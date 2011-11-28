@@ -51,8 +51,6 @@ loop(Socket) ->
 	    loop(Socket);
 
         {start_download, ChunkNumber, Size} ->
-	    %%Size = 524288,
-	    %% Size = 418851,
 	    connection_mngr:request_piece(Socket,ChunkNumber),
 	    connection_mngr:receiver(Socket,[],Size),
 	    loop(Socket);
