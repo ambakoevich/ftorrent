@@ -1,8 +1,8 @@
 -module(gui).
 -author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/2]).
--import(info,[about/2,help/2]).
--import(gui_util,[create_list_ctrl/2]).
+-import(gui_info,[about/2,help/2]).
+-import(gui_util,[create_list_ctrl/2,check/1,file_image/2]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
@@ -20,7 +20,7 @@ new_window()->
     wxPanel:setBackgroundColour(Panel,{204,204,204}),
 
 %%%%%% Creating the Widgets which will be showed on the frame/panel. 
-
+    
     BitmapPause  = wxBitmap:new("Pause.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapCancel = wxBitmap:new("Cancel.png",   [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapOpen   = wxBitmap:new("Openfile.png", [{type,?wxBITMAP_TYPE_PNG}]),
@@ -30,8 +30,20 @@ new_window()->
     %% Video        = wxBitmap:new("video.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
     BitmapAbout  = wxBitmap:new("about.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapHelp   = wxBitmap:new("help.png",     [{type,?wxBITMAP_TYPE_PNG}]),
-    Type         = Logo,
-    StaticBitmap = wxStaticBitmap:new(Panel,12,Type),
+    %% Type         = check(File),
+
+    %% case Type of 
+    %% 	mp3  ->
+    %% 	     StaticBitmap = wxStaticBitmap:new(Panel, 12,  Audio);
+    %%     avi  ->
+    %% 	    StaticBitmap = wxStaticBitmap:new(Panel,  13,  Video);
+    %% 	png  ->
+    %% 	    StaticBitmap = wxStaticBitmap:new(Panel,  13,  Image);
+    %%      _   ->
+    %% 	    StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo)
+    %% end,
+
+    StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo),
     StaticText   = wxStaticText:new  (Panel, 21,"Download status", []),
     StaticText1  = wxStaticText:new  (Panel, 31,"Name: ", []),
     StaticText11 = wxStaticText:new  (Panel, 41,"     Music.mp3 ", []),
@@ -201,12 +213,12 @@ new_window()->
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}.
+    {Frame, Panel, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
 loop(State,Manager)->
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3}= State,
+    {Frame, Panel, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}= State,
 
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
@@ -223,6 +235,7 @@ loop(State,Manager)->
 		    io:format("File Path: ~p~n ", [Path]),
 		    io:format(" File name: ~p~n " , [Filename] ),
 		    Manager ! {start_manager, Filename, self()},
+		    file_image(Panel, StaticBitmap),
 		    wxFileDialog:destroy(FD);
 	   	_ ->             %% Cancel is clicked close Dialog.
 		    wxFileDialog:destroy(FD),
