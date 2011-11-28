@@ -1,6 +1,6 @@
 -define(PSTRLEN, 19).
 -define(PSTR, "BitTorrent protocol").
--define(FWSID, "-FWS0001-10000000001").
+-define(FWSID, lists:concat(["-FWS0001-0000000",random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9)])).
 -define(INETBF,  [{packet, 4}, {active, true}, {packet_size, 33000}]).
 -define(INETHS, [binary, {packet, 0}, {active, false}]).
 -define(RESERVED, <<0,0,0,0,0,0,0,0>>).
