@@ -28,22 +28,18 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 	{select_piece, Pid} ->
 	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Inprocess))),
 	    PieceNumber =  select_piece(UpdatedWishList, Pid),
-	    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);	  
-     
-	
+	    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);
+    	
 	{check_piece, Pid, ChunkNumber, Piece}->
-             io:format("~n >>>>>>>>>>>>>>>>>>>>>  here"),
             case validate_hash:find_hash(HashList,crypto:sha(Piece)) of
 		
 		false ->
-		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  here 2"),
 		    Updated_Process = remove_piece(Piece,[Piece|Inprocess]),
 		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Updated_Process))),
 		    pm ! {select_piece, Pid},
 		    loop(UpdatedWishList,DownloadedList, PeersList, Updated_Process,HashList);
 	
 		true ->
-		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  here 3"),
 		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  piece_validated"),
 		    io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
 		    [{L, _}] = DownloadedList,
@@ -51,9 +47,7 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 		    Updated_Process = remove_piece(Piece,[Piece|Inprocess]),
 		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),	   
 		    loop(UpdatedWishList,Downloaded, PeersList, Updated_Process,HashList)
-	    end;
-	
-    
+	    end;   
 
 	{check_interested, Pid} -> 
 	    case filter:lookup(WishList, Pid) of 
@@ -61,20 +55,19 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 		_  -> interested(Pid)
 	    end,
 	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
-
     end. 
 
 
 select_piece(WishList, Pid)-> 
     io:format("~n AT select_piece  ~n"),
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
-    case PieceNumber of
-		pid_not_there -> 
-	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
-	    Pid ! {ok,stayAlive};
-		_  -> 
+    case is_integer(PieceNumber) of
+	true ->  
 	    check_size(PieceNumber, Pid),
-	    PieceNumber
+	    PieceNumber;
+	false -> 
+	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
+	    Pid ! {ok, stayAlive}
 	    end.
     
 interested(Pid)->
@@ -85,10 +78,11 @@ not_interested(Pid)->
 
 
 check_size(Index, Pid)->
-    case db:read("NoOfPieces") of %% change -1
-	    Index ->  Pid ! {start_download,Index,db:read("LastPieceSize")};
-		_ -> Pid ! {start_download,Index,db:read("pieceSize")}
-				    end.
+    io:format("~n AT check_size  ~p~n",[Index]),
+	   case db:read("NoOfPieces") of %% change -1
+	       Index ->  Pid ! {start_download,Index,db:read("LastPieceSize")};
+	       _ -> Pid ! {start_download,Index,db:read("pieceSize")}
+	   end.
 					    
 
 join_pieces(DownloadedList, Inprocess)->
