@@ -28,8 +28,13 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 	{select_piece, Pid} ->
 	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Inprocess))),
 	    PieceNumber =  select_piece(UpdatedWishList, Pid),
-	    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);
-    	
+	    case is_integer(PieceNumber) of
+		true->
+		    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);
+		false-> 
+		    loop(UpdatedWishList, DownloadedList, PeersList,Inprocess,HashList)
+	    end;
+
 	{check_piece, Pid, ChunkNumber, Piece}->
             case validate_hash:find_hash(HashList,crypto:sha(Piece)) of
 		
