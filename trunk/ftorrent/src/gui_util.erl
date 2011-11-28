@@ -1,4 +1,3 @@
-%%GUI UTIL
 -module(gui_util).
 -author("Ionut Trancioveanu").
 -compile(export_all).
@@ -14,3 +13,30 @@ create_list_ctrl(ListCtrl, List) ->
     lists:reverse(List),
     lists:map(Fun,List),
     ListCtrl.
+
+check(File) ->
+       case filename:extension(File) of
+	".mp3" ->
+	    mp3;
+	".png" ->
+	    png;
+	".avi" ->
+	    avi;
+	_ ->
+	    other
+		end.
+file_image(StaticBitmap, FileName) ->
+    Type = check(FileName),
+    Image = wxBitmap:new("image.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
+    Audio = wxBitmap:new("audio.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
+    Video = wxBitmap:new("video.jpg",   [{type,?wxBITMAP_TYPE_JPEG}]),
+    case Type of 
+	mp3  ->
+	    wxStaticBitmap:setBitmap(StaticBitmap, Audio);
+        avi  ->
+	    wxStaticBitmap:setBitmap(StaticBitmap, Video);
+	png  ->
+	    wxStaticBitmap:setBitmap(StaticBitmap, Image);
+         _   ->
+	    ok   
+ end.
