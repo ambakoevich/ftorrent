@@ -75,11 +75,12 @@ insert_infohash_binary(Torrent)->
 insert_infohash_hex(Torrent)->
     write("InfoHashHex", bencode:bin_to_hexstr(info_hash(Torrent)),db).
 
-%%retreive peice binary of the hashed part of the torrent file and insert it to ets table
-%%insert_piece_binary(Torrent) ->
-%%    {{dico, Data},_} = readtorrent(Torrent),
-%%    {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
-%%{value,{{str,_},{str,Piece_binary}}}=lists:keysearch({str,"pieces"},1,Info_list),
+%%retreive the entire hash from the torrent file
+retreive_hash_binary(Torrent) ->
+    {{dico, Data},_} = readtorrent(Torrent),
+    {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
+{value,{{str,_},{str,Pieces}}}=lists:keysearch({str,"pieces"},1,Info_list),
+Pieces.
 %%    write("piece length",Piece_binary,db).
     
 %%Build the line which is used for connecting to tracker
@@ -95,3 +96,4 @@ encode_hash([A,B|Rest])->
     "%" ++ [A] ++ [B] ++ encode_hash(Rest);
 encode_hash([]) ->
               [].
+
