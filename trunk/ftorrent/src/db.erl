@@ -1,4 +1,4 @@
-%% Author: Zarif Jawad,Paulius Vysniauskas,David Giorgidze
+%% Author: Zarif Jawad, Paulius Vysniauskas, David Giorgidze
 %% Created: 2011-11-07
 %% Description : Extract all information form a torrent file
 %%               and insert it to ets table. Build the line
