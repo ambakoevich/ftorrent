@@ -7,7 +7,7 @@
 
  %% Running the module
 start(URL)->
-     io:format("URL RES: ~p~n",[URL]),
+    io:format("URL RES: ~p~n",[URL]),
     get_request(URL).
 
  %% This function will call inets OTP and run the start function, 
