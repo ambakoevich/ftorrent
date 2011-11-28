@@ -1,3 +1,4 @@
+%% PIECE MANAGER.
 -module(piece_manager).
 -compile(export_all).
 -include("constants.hrl").

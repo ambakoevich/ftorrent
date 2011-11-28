@@ -1,3 +1,4 @@
+%% HASH CHECKING
 -module(validate_hash).
 -export([find_hash/2, get_hash/1, hash_it/1]).
 

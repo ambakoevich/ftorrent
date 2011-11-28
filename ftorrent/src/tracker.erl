@@ -1,6 +1,6 @@
 %% Author: Rashid Darwish
 %% Created: 2011-10-20
-%% Description: Establishing the connection with torrents trackers
+%% Description: Establishing the connection with torrents trackers.
 
 -module(tracker).
 -export([start/1]).

@@ -1,3 +1,4 @@
+%% RAREST FIRST
 -module(filter).
 -export([find/2, filter_values/2, sort_added/2, filter_peer_set/2, join_set/2, get_rarest/1, update_have/4, lookup/2]).
 -import(histogram, [gen_hist/3, sort_hist/2]).

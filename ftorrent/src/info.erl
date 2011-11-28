@@ -1,3 +1,4 @@
+%% INFO
 -module(info).
 -author("Ionut Trancioveanu").
 -compile(export_all).

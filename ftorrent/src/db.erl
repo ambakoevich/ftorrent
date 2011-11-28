@@ -2,7 +2,7 @@
 %% Created: 2011-11-07
 %% Description : Extract all information form a torrent file
 %%               and insert it to ets table. Build the line
-%%               used by tracker module to connect to tracker 
+%%               used by tracker module to connect to tracker.
 
 -module(db).
 -import(bencode,[readtorrent/1,info_hash/1]).
@@ -22,7 +22,6 @@ start(Torrent) ->
     insert_piece_info(Data),
     db.
 
-
 write(Key,Elem,Table)->
     ets:insert(Table,{Key,Elem}),
     Table.
@@ -40,11 +39,11 @@ insert_piece_info(Data)->
     {value,{{str,_},{num,Length}}}=lists:keysearch({str,"length"},1,Info_list),
     {value,{{str,_},{num,Piece_length}}}=lists:keysearch({str,"piece length"},1,Info_list),
     Last_piece_length = Length rem Piece_length, 
-    write("Last Piece Length",Last_piece_length,db),
+    write("LastPieceSize",Last_piece_length,db),
     Last_block_length = Last_piece_length rem 16384,
-    write("Last Block Length",Last_block_length,db),
+    write("LastBlockLength",Last_block_length,db),
     No_of_pieces = Length div Piece_length,
-    write("No Of Pieces",No_of_pieces,db).
+    write("NoOfPieces",No_of_pieces,db).
        
     
 %%retreive url from the torrent file and insert it to the ets table
@@ -62,27 +61,19 @@ insert_length(Data) ->
 insert_piece_length(Data) -> 
     {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
 {value,{{str,_},{num,Piece_length}}}=lists:keysearch({str,"piece length"},1,Info_list),
-    write("piece length",Piece_length,db).
+    write("pieceSize",Piece_length,db).
     
 %%retreive filename from the torrent file and insert to ets table
 insert_filename(Data)->
     {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
 {value,{{str,_},{str,File_name}}}=lists:keysearch({str,"name"},1,Info_list),
-    write("File name",File_name,db).
+    write("FileName",File_name,db).
 
 %%retreive hash_info from the torrent file and insert it to ets table
 insert_infohash_binary(Torrent)-> 
-    write("Info Hash Binary",info_hash(Torrent),db).
+    write("InfoHashBinary",info_hash(Torrent),db).
 insert_infohash_hex(Torrent)->
-    write("Info Hash Hex", bencode:bin_to_hexstr(info_hash(Torrent)),db).
-
-%%retreive hash from the torrent file and insert it to the ets table
-get_hash(Torrent)->
-     {{dico, Data},_} = readtorrent(Torrent),
-    {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
-    {value,{{str,_},{str,Pieces}}}=lists:keysearch({str,"pieces"},1,Info_list),
-    Pieces.
-
+    write("InfoHashHex", bencode:bin_to_hexstr(info_hash(Torrent)),db).
 
 %%retreive peice binary of the hashed part of the torrent file and insert it to ets table
 %%insert_piece_binary(Torrent) ->
@@ -97,7 +88,7 @@ concat(Announce,Hash,Peer_id,Port,Uploaded,Downloaded,Left,Compact)->
    Port ++ "&uploaded=" ++ Uploaded ++ "&downloaded=" ++ Downloaded ++ 
    "&left=" ++ Left ++ "&compact=" ++ Compact.
 concat()->
-    concat(db:read("announce"),encode_hash(db:read("Info Hash Hex")),?FWSID,?FWSPORT,"0","0","0","1").
+    concat(db:read("announce"),encode_hash(db:read("InfoHashHex")),?FWSID,?FWSPORT,"0","0","0","1").
 
 %%Encode the url which is used for connecting to tracker
 encode_hash([A,B|Rest])->
