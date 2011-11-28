@@ -12,7 +12,7 @@ start()->
 loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     receive
         {ok, Hash}-> 
-	    loop(WishList, DownloadedList, PeersList, Inprocess, Hash);
+	    loop(WishList, DownloadedList, PeersList, Inprocess, list_to_binary(Hash));
         {bitfield,Pid, Bitfield} ->
             io:format("~nNewBit: ~p  ~n", [filter:join_set([{Bitfield, Pid}|PeersList], DownloadedList)]),
 	    self() ! {check_interested, Pid},
