@@ -45,6 +45,7 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 		    loop(UpdatedWishList,DownloadedList, PeersList, Updated_Process,HashList);
 	
 		true ->
+		    gui ! {piece_downloaded},
 		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  piece_validated"),
 		    io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
 		    [{L, _}] = DownloadedList,
