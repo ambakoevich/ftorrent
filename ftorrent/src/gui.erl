@@ -1,13 +1,13 @@
 -module(gui).
 -author("Ionut Trancioveanu").
--export([start/1,new_window/0,loop/2]).
+-export([start/1,new_window/0,loop/3]).
 -import(gui_info,[about/2,help/2]).
 -import(gui_util,[create_list_ctrl/2,check/1,file_image/2]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
     State = new_window(),
-    loop(State,Manager).
+    loop(State,Manager,1).
 
 %%%%%%% Creating a new window/frame and a panel. 
 
@@ -180,12 +180,12 @@ new_window()->
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}.
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
-loop(State,Manager)->
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap}= State,
+loop(State,Manager,Piece_total)->
+    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
     
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
@@ -205,18 +205,18 @@ loop(State,Manager)->
 		    wxFileDialog:destroy(FD),
 		    cancel
 	    end,
-            loop(State, Manager);
+            loop(State, Manager,Piece_total);
 	#wx{id= 2, event=#wxCommand{type=command_button_clicked}} ->
 	    Manager ! {connect, self()},
-            loop(State, Manager);
+            loop(State, Manager,Piece_total);
 	#wx{id= 3, event=#wxCommand{type=command_button_clicked}} ->
-            loop(State, Manager);
+            loop(State, Manager,Piece_total);
 	#wx{id= 4, event=#wxCommand{type=command_button_clicked}} ->
 	    about(4, Frame),   %% Event when button About is clicked.
-            loop(State, Manager);
+            loop(State, Manager,Piece_total);
 	#wx{id= 5, event=#wxCommand{type=command_button_clicked}} ->
 	    help(5, Frame),    %% Event when button Help is clicked.
-            loop(State, Manager);
+            loop(State, Manager,Piece_total);
 	{table, Torrent_info} ->
 	    wxStaticText:setLabel(StaticText11, db:read("FileName")),
 	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
@@ -225,9 +225,15 @@ loop(State,Manager)->
              Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
 	    wxStaticText:setLabel(Win2Text, "\n   Tracker: " ++ db:read("announce")),
 	    file_image(StaticBitmap, db:read("FileName")),
-	    loop(State, Manager);
+	    loop(State, Manager,Piece_total);
 	{peer_list, Peer_list} ->
 	    create_list_ctrl(Win3, Peer_list),
-	    loop(State, Manager)
+	    loop(State, Manager,Piece_total);
+	%%Recceives message from piece manager after every peice 
+	%%is downloaded and sets the gauge accordingly
+	{piece_downloaded} ->
+	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
+	    wxGauge:setValue(Gauge,Value),
+	    loop(State, Manager,Piece_total + 1)
     end.
 

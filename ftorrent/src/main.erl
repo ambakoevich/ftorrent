@@ -7,5 +7,6 @@
 
 start() ->
     Manager = spawn(manager, start, []),
-    GUI = spawn(gui, start, [Manager]).   
+    GUI = spawn(gui, start, [Manager]),
+    register(gui,GUI).   
     
