@@ -52,7 +52,6 @@ handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     handshake_peers(T, List, Hash, Limit - 1);
 
 handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, 0) ->
+    Acc;
+handshake_peers([], Acc, Hash, Limit) ->
     Acc.
-
-
-
