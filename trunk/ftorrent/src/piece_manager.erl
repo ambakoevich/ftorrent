@@ -28,6 +28,7 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 	{select_piece, Pid} ->
 	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Inprocess))),
 	    PieceNumber =  select_piece(UpdatedWishList, Pid),
+	     io:format("~n AT 1 select_piece ~p~n",[PieceNumber]),
 	    case is_integer(PieceNumber) of
 		true->
 		    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);
@@ -63,7 +64,8 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
     end. 
 
-
+select_piece([], Pid) -> io:format("File Downloaded"),
+	    Pid ! {ok, stayAlive};
 select_piece(WishList, Pid)-> 
     io:format("~n AT select_piece  ~n"),
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
@@ -74,7 +76,7 @@ select_piece(WishList, Pid)->
 	false -> 
 	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
 	    Pid ! {ok, stayAlive}
-	    end.
+    end.
     
 interested(Pid)->
     Pid ! {send_interested}.
