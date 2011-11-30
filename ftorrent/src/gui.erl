@@ -1,13 +1,13 @@
 -module(gui).
 -author("Ionut Trancioveanu").
--export([start/1,new_window/0,loop/3]).
--import(gui_info,[about/2,help/2]).
+-export([start/1,new_window/0,loop/4]).
+-import(gui_info,[about/2,help/2,error_message/2]).
 -import(gui_util,[create_list_ctrl/2,check/1,file_image/2]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
     State = new_window(),
-    loop(State,Manager,1).
+    loop(State,Manager,1,not_chosen).
 
 %%%%%%% Creating a new window/frame and a panel. 
 
@@ -184,7 +184,7 @@ new_window()->
 
 %%%%%% Create a loop which receives messages and respond to them.
 
-loop(State,Manager,Piece_total)->
+loop(State,Manager,Piece_total,Status)->
     {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
     
     receive      %% Receiving the close message which is sent to server.
@@ -193,6 +193,8 @@ loop(State,Manager,Piece_total)->
 	    wxFrame:destroy(Frame),  %% Close the window.
             ok;       %% Exit the loop.
         #wx{id= 1, event=#wxCommand{type=command_button_clicked}} ->
+	    case Status of       %% File Dialog Open File Button.
+		not_chosen ->
 	    FD=wxFileDialog:new(Frame,[{message,"   Select torrent file to open  "}]),
 	    case wxFileDialog:showModal(FD) of
 		?wxID_OK ->      %% Open is clicked show the Dialog.
@@ -205,18 +207,41 @@ loop(State,Manager,Piece_total)->
 		    wxFileDialog:destroy(FD),
 		    cancel
 	    end,
-            loop(State, Manager,Piece_total);
+		    io:format("First case status 0~n"),
+            loop(State, Manager,Piece_total,chosen_not_started);
+		chosen_not_started ->
+		    io:format("First case status 1~n"),
+		     loop(State, Manager,Piece_total,Status);
+		chosen_started ->
+		    io:format("First case status 2~n"),
+		     loop(State, Manager,Piece_total,Status)
+		    end;
 	#wx{id= 2, event=#wxCommand{type=command_button_clicked}} ->
-	    Manager ! {connect, self()},
-            loop(State, Manager,Piece_total);
+	    case Status of
+		chosen_not_started ->
+		     io:format("Case for start ,Process not yet started~n"),
+	    Manager ! {connect, self()},    %% Start Button
+		    loop(State, Manager,Piece_total,chosen_started);
+		chosen_started->
+		     io:format("Case  start ,Process already started~n"),
+		    
+		     loop(State, Manager,Piece_total,Status);
+		not_chosen ->
+		     io:format("Case for start ,Process already started~n"),
+		     error_message(2,  Frame),
+		     loop(State, Manager,Piece_total,Status)
+			end;
 	#wx{id= 3, event=#wxCommand{type=command_button_clicked}} ->
-            loop(State, Manager,Piece_total);
+	    io:format("Manger trying to be stopped"),
+	    exit(Manager,"watvere"),
+	    Managernew = spawn(manager, start, []),
+            loop(State, Managernew,Piece_total,not_chosen);  %% Cancel Button
 	#wx{id= 4, event=#wxCommand{type=command_button_clicked}} ->
 	    about(4, Frame),   %% Event when button About is clicked.
-            loop(State, Manager,Piece_total);
+            loop(State, Manager,Piece_total,Status);
 	#wx{id= 5, event=#wxCommand{type=command_button_clicked}} ->
 	    help(5, Frame),    %% Event when button Help is clicked.
-            loop(State, Manager,Piece_total);
+            loop(State, Manager,Piece_total,Status);
 	{table, Torrent_info} ->
 	    wxStaticText:setLabel(StaticText11, db:read("FileName")),
 	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
@@ -225,15 +250,15 @@ loop(State,Manager,Piece_total)->
              Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
 	    wxStaticText:setLabel(Win2Text, "\n   Tracker: " ++ db:read("announce")),
 	    file_image(StaticBitmap, db:read("FileName")),
-	    loop(State, Manager,Piece_total);
+	    loop(State, Manager,Piece_total,Status);
 	{peer_list, Peer_list} ->
 	    create_list_ctrl(Win3, Peer_list),
-	    loop(State, Manager,Piece_total);
+	    loop(State, Manager,Piece_total,Status);
 	%%Recceives message from piece manager after every peice 
 	%%is downloaded and sets the gauge accordingly
 	{piece_downloaded} ->
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
 	    wxGauge:setValue(Gauge,Value),
-	    loop(State, Manager,Piece_total + 1)
+	    loop(State, Manager,Piece_total + 1,Status)
     end.
 
