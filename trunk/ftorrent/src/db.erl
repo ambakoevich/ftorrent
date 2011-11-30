@@ -89,7 +89,7 @@ concat(Announce,Hash,Peer_id,Port,Uploaded,Downloaded,Left,Compact)->
    Port ++ "&uploaded=" ++ Uploaded ++ "&downloaded=" ++ Downloaded ++ 
    "&left=" ++ Left ++ "&compact=" ++ Compact.
 concat()->
-    concat(db:read("announce"),encode_hash(db:read("InfoHashHex")),?FWSID,?FWSPORT,"0","0","0","1").
+    concat(db:read("announce"),encode_hash(db:read("InfoHashHex")),?FWSID,?FWSPORT,"0","0",integer_to_list(db:read("length")),"1").
 
 %%Encode the url which is used for connecting to tracker
 encode_hash([A,B|Rest])->
