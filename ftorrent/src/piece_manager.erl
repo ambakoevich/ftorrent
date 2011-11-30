@@ -64,8 +64,10 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
     end. 
 
-select_piece([], Pid) -> io:format("File Downloaded"),
-	    Pid ! {ok, stayAlive};
+select_piece([], Pid) ->
+    io:format("File Downloaded"),
+    Pid ! {ok, stayAlive};
+
 select_piece(WishList, Pid)-> 
     io:format("~n AT select_piece  ~n"),
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
