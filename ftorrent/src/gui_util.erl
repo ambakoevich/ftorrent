@@ -40,3 +40,9 @@ file_image(StaticBitmap, FileName) ->
          _   ->
 	    ok   
  end.
+
+limit_filename([H|T],Acc,Limit) when Limit > 0->
+    NewAcc = Acc ++ [H],
+    limit_filename(T,NewAcc, Limit - 1);
+limit_filename(A,Acc,0) ->
+    Acc.

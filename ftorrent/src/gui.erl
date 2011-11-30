@@ -2,7 +2,7 @@
 -author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/4]).
 -import(gui_info,[about/2,help/2,error_message/2]).
--import(gui_util,[create_list_ctrl/2,check/1,file_image/2]).
+-import(gui_util,[create_list_ctrl/2,check/1,file_image/2,limit_filename/3]).
 -include_lib("wx/include/wx.hrl").
 
 start(Manager)->
@@ -28,11 +28,11 @@ new_window()->
     BitmapAbout  = wxBitmap:new("about.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapHelp   = wxBitmap:new("help.png",     [{type,?wxBITMAP_TYPE_PNG}]),
     StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo),
-    StaticText   = wxStaticText:new  (Panel, 21,"Download status", []),
+    StaticText   = wxStaticText:new  (Panel, 21,"Download status",[]),
     StaticText1  = wxStaticText:new  (Panel, 31,"Name: ", []),
-    StaticText11 = wxStaticText:new  (Panel, 41,"     Music.mp3 ", []),
+    StaticText11 = wxStaticText:new  (Panel, 41,"    N/A",[]),
     StaticText2  = wxStaticText:new  (Panel, 51,"Size: ", []),
-    StaticText22 = wxStaticText:new  (Panel, 61,"        1,2 Mb ", []),
+    StaticText22 = wxStaticText:new  (Panel, 61,"    N/A",[]),
     ButtonOpen   = wxBitmapButton:new(Panel, 1 , BitmapOpen),
     ButtonPause  = wxBitmapButton:new(Panel, 2 ,BitmapPause),
     ButtonCancel = wxBitmapButton:new(Panel, 3,BitmapCancel),
@@ -169,7 +169,7 @@ new_window()->
     
     wxPanel:setSizer(Panel,OuterSizer),
     wxFrame:createStatusBar(Frame),
-    wxFrame:setStatusText(Frame, "             Download: 1.2 kB/s"),
+    wxFrame:setStatusText(Frame, "                Download:  N/A  kB/s"),
     wxFrame:fit(Frame),
     wxFrame:show(Frame),
 
@@ -243,7 +243,7 @@ loop(State,Manager,Piece_total,Status)->
 	    help(5, Frame),    %% Event when button Help is clicked.
             loop(State, Manager,Piece_total,Status);
 	{table, Torrent_info} ->
-	    wxStaticText:setLabel(StaticText11, db:read("FileName")),
+	    wxStaticText:setLabel(StaticText11, limit_filename(db:read("FileName"),[],20)),
 	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
 	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n  
              Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n  
@@ -261,4 +261,5 @@ loop(State,Manager,Piece_total,Status)->
 	    wxGauge:setValue(Gauge,Value),
 	    loop(State, Manager,Piece_total + 1,Status)
     end.
+
 
