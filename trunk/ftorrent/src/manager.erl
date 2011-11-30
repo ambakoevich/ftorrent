@@ -22,8 +22,10 @@ loop(Torrent_info) ->
 	{start_manager,Torrent, GUI_Pid}->
             Torrent_info_new = db:start(Torrent),
 	    io:format("Starting manager~n"),
-	    register(pm, spawn(piece_manager, start,[])),
-	    register(io, spawn(io_manager, start,[])),
+	    register(pm,A = spawn(piece_manager, start,[])),
+	    register(io,B = spawn(io_manager, start,[])),
+	    link(A),
+	    link(B),
 	    pm ! {ok,db:retreive_hash_binary(Torrent)},
 	    GUI_Pid ! {table, Torrent_info_new},
 	    loop(Torrent_info_new);
@@ -40,6 +42,7 @@ loop(Torrent_info) ->
             GUI_Pid ! {peer_list, Peer_list},
 	    loop(Torrent_info);
 	{stop} ->
+	    io:format("Manager being killed"),
 	    stopped
     end.
 
@@ -47,6 +50,7 @@ handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     %%io:format(" limit is ~p~n",[Limit]),
     %% Pid = spawn(?MODULE,loop,[Ip,Port, Hash, 0]),
     Pid = connection_server:start(Ip,Port, Hash),
+    link(Pid),
     List = [Ip|Acc],
     %% Pid ! {start},
     handshake_peers(T, List, Hash, Limit - 1);
