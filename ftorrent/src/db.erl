@@ -142,7 +142,8 @@ insert_piece_length(Data) ->
 insert_filename(Data)->
     {value, {{str,_},{dico,Info_list}}}= lists:keysearch({str,"info"},1,Data),
     {value,{{str,_},{str,File_name}}}=lists:keysearch({str,"name"},1,Info_list),
-    write("FileName",File_name,db).
+    Bin = list_to_binary(File_name),    
+    write("FileName",convert(Bin),db).
 
 
 
@@ -174,4 +175,11 @@ encode_hash([A,B|Rest])->
     "%" ++ [A] ++ [B] ++ encode_hash(Rest);
 encode_hash([]) ->
     [].
+
+
+%% Convert file name characters into UTF8 encoding
+convert(<<>>) ->
+    [];
+convert( <<Ch/utf8, Rest/binary>>) ->
+    [Ch|convert(Rest)].
 
