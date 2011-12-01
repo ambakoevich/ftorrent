@@ -29,6 +29,7 @@ new_window()->
     BitmapHelp   = wxBitmap:new("help.png",     [{type,?wxBITMAP_TYPE_PNG}]),
     StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo),
     StaticText   = wxStaticText:new  (Panel, 21,"Download status",[]),
+    StaticTextDS = wxStaticText:new  (Panel, 71," N/A",[]),
     StaticText1  = wxStaticText:new  (Panel, 31,"Name: ", []),
     StaticText11 = wxStaticText:new  (Panel, 41,"    N/A",[]),
     StaticText2  = wxStaticText:new  (Panel, 51,"Size: ", []),
@@ -153,6 +154,8 @@ new_window()->
     wxSizer:add(TextSizer, StaticText22, []),
     wxSizer:addSpacer(TextSizer  ,  40),
     wxSizer:add(TextSizer, StaticText  , []),
+     wxSizer:addSpacer(TextSizer  ,  10),
+    wxSizer:add(TextSizer, StaticTextDS  , []),
     wxSizer:addSpacer(TextSizer  ,  60),
     wxSizer:addSpacer(InputSizer ,  30),
     wxSizer:addSpacer(InputSizer1,  40),
@@ -180,12 +183,12 @@ new_window()->
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
+    {Frame, StaticText11, StaticText22, StaticTextDS,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
 loop(State,Manager,Piece_total,Status)->
-    {Frame, StaticText11, StaticText22,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
+    {Frame, StaticText11, StaticText22, StaticTextDS,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
     
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
@@ -242,7 +245,7 @@ loop(State,Manager,Piece_total,Status)->
 	#wx{id= 5, event=#wxCommand{type=command_button_clicked}} ->
 	    help(5, Frame),    %% Event when button Help is clicked.
             loop(State, Manager,Piece_total,Status);
-	{table, Torrent_info} ->
+	{table, Torrent_info} ->	    
 	    wxStaticText:setLabel(StaticText11, limit_filename(db:read("FileName"),[],20)),
 	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
 	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n  
@@ -259,6 +262,7 @@ loop(State,Manager,Piece_total,Status)->
 	{piece_downloaded} ->
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
 	    wxGauge:setValue(Gauge,Value),
+	    wxStaticText:setLabel(StaticTextDS, integer_to_list(Value) ++ "%"),
 	    loop(State, Manager,Piece_total + 1,Status)
     end.
 
