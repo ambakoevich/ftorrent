@@ -41,8 +41,11 @@ file_image(StaticBitmap, FileName) ->
 	    ok   
  end.
 
-limit_filename([H|T],Acc,Limit) when Limit > 0->
-    NewAcc = Acc ++ [H],
-    limit_filename(T,NewAcc, Limit - 1);
-limit_filename(A,Acc,0) ->
-    Acc.
+limit_filename([], Acc, _) ->
+    lists:reverse(Acc);
+limit_filename(_, Acc, 0) ->
+    lists:reverse(Acc);
+limit_filename([H|T], Acc, Limit) when Limit > 0->
+    %% NewAcc = Acc ++ [H],    
+    limit_filename(T, [H|Acc], Limit - 1).
+
