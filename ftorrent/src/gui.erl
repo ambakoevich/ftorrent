@@ -1,3 +1,8 @@
+%% @author: Ionut Trancioveanu
+%% @copyright Framework Studio
+%% @version: v0.1
+%% @doc Created: 1-Oct-2011, 
+
 -module(gui).
 -author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/5]).
@@ -10,7 +15,7 @@ start(Manager)->
     {_,_,CurrentTime} = erlang:now(),
     loop(State,Manager,1,0,CurrentTime).
 
-%%%%%%% Creating a new window/frame and a panel. 
+%% @doc Creating a new window/frame and a panel. 
 
 new_window()->
     Server = wx:new(),
@@ -20,7 +25,7 @@ new_window()->
     Panel  = wxPanel:new(Frame),
     wxPanel:setBackgroundColour(Panel,{204,204,204}),
 
-%%%%%% Creating the Widgets which will be showed on the frame/panel. 
+%% @doc Creating the Widgets which will be showed on the frame/panel. 
     
     BitmapPause  = wxBitmap:new("Pause.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapCancel = wxBitmap:new("Cancel.png",   [{type,?wxBITMAP_TYPE_PNG}]),
@@ -41,7 +46,7 @@ new_window()->
     ButtonAbout  = wxBitmapButton:new(Panel,  4 ,BitmapAbout),
     ButtonHelp   = wxBitmapButton:new(Panel,  5 , BitmapHelp),
 
-%%%%%% Creating listeners for the buttons.
+%% @doc Creating listeners for the buttons.
     Range = 100,
     Value = 0,
     wxBitmapButton:connect(ButtonOpen,  command_button_clicked),
@@ -58,7 +63,7 @@ new_window()->
     wxStaticText:setFont(FileName,Font1),
     wxStaticText:setFont(FileSize,Font1),
 
-%%%%%% Creating Notebook in which the Info about torrent file will be shown.
+%% @doc Creating Notebook in which the Info about torrent file will be shown.
 
     Notebook = wxNotebook:new(Panel, 1, [{style, ?wxBK_DEFAULT}]),
     %% wxImageList is for displaying icons in the tab field
@@ -108,7 +113,7 @@ new_window()->
     wxNotebook:addPage(Notebook, Win4, "File", []),
     wxNotebook:setPageImage(Notebook, 3, 3),
 
-%%%%%% Create Sizers.
+%% @doc Create Sizers.
     
     MainSizer     = wxBoxSizer:new(?wxHORIZONTAL),
     InputSizer    = wxBoxSizer:new(?wxHORIZONTAL),
@@ -120,7 +125,7 @@ new_window()->
     SpaceSizer    = wxBoxSizer:new(?wxHORIZONTAL),
     OuterSizer    = wxBoxSizer:new  (?wxVERTICAL),
     
-%%%%%% Adding the Widgets, using the Variable, to Sizers and Spacers.
+%% @doc Adding the Widgets, using the Variable, to Sizers and Spacers.
      
     wxSizer:add(MainSizer, InputSizer,   []),
     wxSizer:add(ButtonSizer1,ButtonSizer,[]),
@@ -154,7 +159,7 @@ new_window()->
     wxSizer:add(TextSizer, FileSizeNA  , []),
     wxSizer:addSpacer(TextSizer  ,  40),
     wxSizer:add(TextSizer, DownloadText, []),
-     wxSizer:addSpacer(TextSizer  ,  10),
+    wxSizer:addSpacer(TextSizer  ,  10),
     wxSizer:add(TextSizer, DownldStatus, []),
     wxSizer:addSpacer(TextSizer  ,  60),
     wxSizer:addSpacer(InputSizer ,  30),
@@ -168,7 +173,7 @@ new_window()->
     wxSizer:add(OuterSizer,Notebook,[{proportion, 1}, {flag, ?wxEXPAND}]),
     wxNotebook:connect(Notebook, command_notebook_page_changed, [{skip, true}]),
 
-%%%%%% Setting the OuterSizer into the Panel and show the Frame.
+%% @doc Setting the OuterSizer into the Panel and show the Frame.
     
     wxPanel:setSizer(Panel,OuterSizer),
     wxFrame:createStatusBar(Frame),
@@ -176,16 +181,16 @@ new_window()->
     wxFrame:fit(Frame),
     wxFrame:show(Frame),
 
-%%%%%% Create the listeners.
+%% @doc Create the listeners.
 
      wxFrame:connect(Frame, close_window),
      wxPanel:connect(Panel, command_button_clicked),
 
-%%%%%% Returned value from the State. 
+%% @doc Returned value from the State. 
 
     {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
 
-%%%%%% Create a loop which receives messages and respond to them.
+%% @doc Create a loop which receives messages and respond to them.
 
 loop(State,Manager,Piece_total,Status,PreviousTime)->
     {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
@@ -264,8 +269,9 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 	    io:format("Klaipeda is time  ~p~n",[Time_diff]),
 	    wxFrame:setStatusText(Frame, "                Download:  " ++ integer_to_list(Speed) ++ "  kB/s"),
 	     loop(State, Manager,Piece_total,Status,CurrentTime);
-	%%Recceives message from piece manager after every peice 
-	%%is downloaded and sets the gauge accordingly
+
+%% @doc Receiving messages from piece manager after every peice 
+%% is downloaded and sets the gauge accordingly
 	{piece_downloaded} ->
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
 	    wxGauge:setValue(Gauge,Value),
