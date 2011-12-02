@@ -1,7 +1,7 @@
 %% @author Batbilig Bavuudorj, David Giorgidze
 %% @copyright Framework Studio
 %% @version v0.1
-%% @doc Creating Date: 24-Nov-2011, Filter is used to filter out values of one table/list
+%% @doc Created: 24-Nov-2011, Filter is used to filter out values of one table/list
 %% from other tables/lists. It provides a function which
 %% joins two lists to one and sorts it later.
 
