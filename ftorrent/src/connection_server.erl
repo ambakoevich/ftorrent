@@ -79,7 +79,7 @@ loop(Socket) ->
 	    loop(Socket);
 	{error, drop_connection, Ip} ->
 	    io:format("~nNo Such Peer: ~p~n",[Ip]);
-
+            
 	R -> 
 	    io:format("~n>>>>REPLAY ~p~n", [R]),
 	    loop(Socket)
