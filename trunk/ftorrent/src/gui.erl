@@ -28,36 +28,35 @@ new_window()->
     Logo         = wxBitmap:new("Logo.png",     [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapAbout  = wxBitmap:new("about.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapHelp   = wxBitmap:new("help.png",     [{type,?wxBITMAP_TYPE_PNG}]),
-    StaticBitmap = wxStaticBitmap:new(Panel,  14,   Logo),
-    StaticText   = wxStaticText:new  (Panel, 21,"Download status",[]),
-    StaticTextDS = wxStaticText:new  (Panel, 71," N/A",[]),
-    StaticText1  = wxStaticText:new  (Panel, 31,"Name: ", []),
-    StaticText11 = wxStaticText:new  (Panel, 41,"    N/A",[]),
-    StaticText2  = wxStaticText:new  (Panel, 51,"Size: ", []),
-    StaticText22 = wxStaticText:new  (Panel, 61,"    N/A",[]),
-    ButtonOpen   = wxBitmapButton:new(Panel, 1 , BitmapOpen),
-    ButtonPause  = wxBitmapButton:new(Panel, 2 ,BitmapPause),
-    ButtonCancel = wxBitmapButton:new(Panel, 3,BitmapCancel),
-    ButtonAbout  = wxBitmapButton:new(Panel, 4 ,BitmapAbout),
-    ButtonHelp   = wxBitmapButton:new(Panel, 5 , BitmapHelp),
+    DownloadText = wxStaticText:new  (Panel, 21,"Download status",[]),
+    StaticBitmap = wxStaticBitmap:new(Panel,  14,       Logo),
+    DownldStatus = wxStaticText:new  (Panel, 71,   " N/A",[]),
+    FileName     = wxStaticText:new  (Panel, 31,"Name: ", []),
+    NameNA       = wxStaticText:new  (Panel, 41,"    N/A",[]),
+    FileSize     = wxStaticText:new  (Panel, 51,"Size: ", []),
+    FileSizeNA   = wxStaticText:new  (Panel, 61,"    N/A",[]),
+    ButtonOpen   = wxBitmapButton:new(Panel,  1 , BitmapOpen),
+    ButtonPause  = wxBitmapButton:new(Panel,  2 ,BitmapPause),
+    ButtonCancel = wxBitmapButton:new(Panel,  3,BitmapCancel),
+    ButtonAbout  = wxBitmapButton:new(Panel,  4 ,BitmapAbout),
+    ButtonHelp   = wxBitmapButton:new(Panel,  5 , BitmapHelp),
 
 %%%%%% Creating listeners for the buttons.
-
+    Range = 100,
+    Value = 0,
     wxBitmapButton:connect(ButtonOpen,  command_button_clicked),
     wxBitmapButton:connect(ButtonPause, command_button_clicked),
     wxBitmapButton:connect(ButtonCancel,command_button_clicked),
     wxBitmapButton:setToolTip(ButtonOpen,  "Add torrent file "),
     wxBitmapButton:setToolTip(ButtonPause,     "Start torrent"),
     wxBitmapButton:setToolTip(ButtonCancel,   "Cancel torrent"),
-    Range = 100,
     Gauge = wxGauge:new(Panel,1,Range,[{size,{260,-1}},{style,?wxGA_HORIZONTAL}]),
-    Value = 0,
     wxGauge:setValue(Gauge, Value),
     Font1 = wxFont:new(15, ?wxMODERN, ?wxNORMAL, ?wxBOLD),
     Font2 = wxFont:new(10, ?wxNORMAL, ?wxNORMAL, ?wxBOLD),
-    wxStaticText:setFont(StaticText1,Font1),
-    wxStaticText:setFont(StaticText2,Font1),
-    wxStaticText:setFont(StaticText,Font2),
+    wxStaticText:setFont(DownloadText,Font2),
+    wxStaticText:setFont(FileName,Font1),
+    wxStaticText:setFont(FileSize,Font1),
 
 %%%%%% Creating Notebook in which the Info about torrent file will be shown.
 
@@ -146,17 +145,17 @@ new_window()->
     wxSizer:add(InputSizer,ButtonHelp  , []),
     wxSizer:addSpacer(TextSizer1 ,  30),
     wxSizer:addSpacer(TextSizer  ,  40),
-    wxSizer:add(TextSizer, StaticText1 , []),
+    wxSizer:add(TextSizer, FileName    , []),
     wxSizer:addSpacer(TextSizer  ,  20),
-    wxSizer:add(TextSizer, StaticText11, []),
+    wxSizer:add(TextSizer, NameNA      , []),
     wxSizer:addSpacer(TextSizer  ,  20),
-    wxSizer:add(TextSizer, StaticText2 , []),
+    wxSizer:add(TextSizer, FileSize    , []),
     wxSizer:addSpacer(TextSizer  ,  20),
-    wxSizer:add(TextSizer, StaticText22, []),
+    wxSizer:add(TextSizer, FileSizeNA  , []),
     wxSizer:addSpacer(TextSizer  ,  40),
-    wxSizer:add(TextSizer, StaticText  , []),
+    wxSizer:add(TextSizer, DownloadText, []),
      wxSizer:addSpacer(TextSizer  ,  10),
-    wxSizer:add(TextSizer, StaticTextDS  , []),
+    wxSizer:add(TextSizer, DownldStatus, []),
     wxSizer:addSpacer(TextSizer  ,  60),
     wxSizer:addSpacer(InputSizer ,  30),
     wxSizer:addSpacer(InputSizer1,  40),
@@ -184,12 +183,12 @@ new_window()->
 
 %%%%%% Returned value from the State. 
 
-    {Frame, StaticText11, StaticText22, StaticTextDS,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
+    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
 
 %%%%%% Create a loop which receives messages and respond to them.
 
 loop(State,Manager,Piece_total,Status,PreviousTime)->
-    {Frame, StaticText11, StaticText22, StaticTextDS,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
+    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
     
     receive      %% Receiving the close message which is sent to server.
 	#wx{event=#wxClose{}} ->   
@@ -247,8 +246,8 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 	    help(5, Frame),    %% Event when button Help is clicked.
             loop(State, Manager,Piece_total,Status,PreviousTime);
 	{table, Torrent_info} ->	    
-	    wxStaticText:setLabel(StaticText11, limit_filename(db:read("FileName"),[],20)),
-	    wxStaticText:setLabel(StaticText22, integer_to_list(db:read("length") div 1048576) ++ " MB"),
+	    wxStaticText:setLabel(NameNA, limit_filename(db:read("FileName"),[],20)),
+	    wxStaticText:setLabel(FileSizeNA, integer_to_list(db:read("length") div 1048576) ++ " MB"),
 	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n  
              Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n  
              Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
@@ -270,7 +269,7 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 	{piece_downloaded} ->
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
 	    wxGauge:setValue(Gauge,Value),
-	    wxStaticText:setLabel(StaticTextDS, integer_to_list(Value) ++ "%"),
+	    wxStaticText:setLabel(DownldStatus, integer_to_list(Value) ++ "%"),
 	    loop(State, Manager,Piece_total + 1,Status,PreviousTime)
     end.
 
