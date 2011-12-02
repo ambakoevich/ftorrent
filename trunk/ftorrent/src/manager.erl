@@ -1,22 +1,30 @@
-%% Author: Zarif Jawad,Paulius Vysniauskas,David Giorgidze
-%% Created: 2011-11-20
-%% Comment: Main Manager.
+%% @author Zarif Jawad, Paulius Vysniauskas, David Giorgidze
+%% @copyright Framework Studio
+%% @version v0.1
+%% @doc Created: 20-Nov-2011, Manager is the process which actually starts the application.
+%% It sends request to the tracker, parses the response to get active
+%% peers list and handshakes them.
+
 -module(manager).
 -include("constants.hrl").
 -compile(export_all).
 
+%% @doc Start the manager. Calling init function
 start() ->
     init().
-	        
+
+%% @doc Stop the manager	               
 stop(Pid) ->
     Pid ! {stop, self()},
     receive
 	stopped -> stopped
     end.
 
+%% @doc Initialize the loop and create ETS table. Start the main loop
 init() ->
     loop(ets:new(temp,[])).
 
+%% @doc Main loop. Receives messages and initializes connections
 loop(Torrent_info) ->
     receive
 	{start_manager,Torrent, GUI_Pid}->
@@ -46,6 +54,7 @@ loop(Torrent_info) ->
 	    stopped
     end.
 
+%% @doc Do handshake with all peers in the given list. Return peers IP list
 handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     %%io:format(" limit is ~p~n",[Limit]),
     %% Pid = spawn(?MODULE,loop,[Ip,Port, Hash, 0]),
