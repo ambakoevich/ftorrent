@@ -1,4 +1,4 @@
-%% @author Ionut Trancioveanu,
+%% @author Ionut Trancioveanu, David Giorgidze
 %% @copyright Framework Studio
 %% @version v0.1
 %% @doc Created: 15-Nov-2011, Gui_info displays messages dialogs of corresponding buttons.
