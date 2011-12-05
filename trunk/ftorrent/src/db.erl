@@ -16,7 +16,7 @@ start(Torrent) ->
     {{dico, Data},_} = readtorrent(Torrent),
     insert_url(Data),
     insert_length(Data),
-    %%insert_path(Data),
+    insert_path(Data),
     insert_piece_length(Data),
     insert_filename(Data),
     insert_infohash_binary(Torrent),
@@ -114,12 +114,24 @@ parse_subpath([{str, Name}|T]) ->
     [Name | parse_subpath(T)].
 
 
+%% @doc Create a list containing pairs of length and path tuples/items. Arguments are both lists 
+create_set([], _) ->
+    [];
+create_set(_, []) ->
+    [];
+create_set([Length | Tail_length], [Path | Tail_path]) when length([Length | Tail_length])==length([Path | Tail_path]) ->
+    [{Length, Path} | create_set(Tail_length, Tail_path)].
+
+
+
 %% @doc Insert all the file/path names into an ETS table
 insert_path(Data) ->
     {value, {{str,_},{dico,Info_list}}} = lists:keysearch({str,"info"},1,Data), 
     case lists:keysearch({str,"files"},1,Info_list) of
 	{value, {{str,_},{liste,Dico_list}}} ->
-	    Path = parse_path(Dico_list);
+	    Length_list = parse_length(Dico_list),
+	    Path_list = parse_path(Dico_list),
+	    Path = create_set(Length_list, Path_list);
 	_Nomatch ->
 	    Path = na
     end,
