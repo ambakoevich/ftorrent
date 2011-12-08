@@ -14,7 +14,7 @@ about(4, Frame) ->
 		       "Framework Studio © 2011\n",
 		       "Some Rights Reserved.\n\n",
 		       "F-torrent is a university project, peer to peer file sharing software which is used to download torrents over the BitTorrent protocol.\n\n\n",
-		       "Credits:\n",
+		       "Credits:\n\n",
 		       "Batbilig Bavuudorj\n",
 		       "David Giorgidze\n",
 		       "Ionut Trancioveanu\n",
@@ -34,7 +34,7 @@ about(4, Frame) ->
 %% @doc Help dialog box
 help(5, Frame) ->
     Str = string:join(["\t\tHelp\n\n",
-		       "To use a software:\n\n",
+		       "To use the software:\n\n",
 		       "1. Click Open to load the torrent file.\n\n",
 		       "2. Click Start to start downloading.\n\n",
 		       "3. Wait untill download finishes.\n\n",
