@@ -55,6 +55,9 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),	   
 		    loop(UpdatedWishList,Downloaded, PeersList, Updated_Process,HashList)
 	    end;   
+        
+        {ok, end_game, Pid} -> check_size(lists:last(Inprocess), Pid),
+                               loop(WishList, DownloadedList, PeersList,Inprocess,HashList);
 
 	{check_interested, Pid} -> 
 	    case filter:lookup(WishList, Pid) of 
@@ -69,7 +72,8 @@ select_piece([], Pid, []) ->
     io:format("~n FILE Downloaded~n");
 
 select_piece([], Pid, _) ->
-    Pid ! {ok, keepAlive};
+    self()! {ok, end_game, Pid};
+    %%Pid ! {ok, keepAlive};
 
 select_piece(WishList, Pid, _)-> 
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
@@ -79,7 +83,8 @@ select_piece(WishList, Pid, _)->
 	    PieceNumber;
 	false -> 
 	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
-	    Pid ! {ok, keepAlive}
+	 %%   Pid ! {ok, keepAlive},
+	   self()!{ok, end_game, Pid}
     end.
     
 interested(Pid)->
