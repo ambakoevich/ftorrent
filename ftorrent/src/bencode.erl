@@ -1,8 +1,14 @@
-%%BENCODING
+%% @author Batbilig Bavuudorj, Zarif Jawad, lasts
+%% @version v0.1
+%% @doc Created: 01-Oct-2011, Bencode module is responsible for parsing the bencode data.
+%% It is used for parsing .torrent file as well as parsiing tracker response.
+%% Note:Some parts of a module are open source and is written by lasts. Some parts
+%% are written by members of a Framework Studio.
+
 -module(bencode).
 -compile(export_all).
 
-%% bencode->erlang
+%% bencode -> erlang
 to_erlang([]) -> [];
 to_erlang([$l|Xs]) -> parse_list(Xs, []);
 to_erlang([$d|Xs]) -> parse_dico(Xs, []);
@@ -19,7 +25,6 @@ to_erlang([X|Xs]) ->
         false -> wrong_file % lever une exception ?
     end.
 
-
 parse_list(Xs, Acc) ->
     {Elem, NotParsed} = to_erlang(Xs),
     NewAcc = [Elem|Acc],
@@ -30,15 +35,7 @@ parse_list(Xs, Acc) ->
 
 parse_dico(Xs, Acc) ->
     {Elem1, NotParsed1} = to_erlang(Xs),
-    {Elem2, NotParsed2} =
-        % pieces pose certaines problemes avec l'utf8...
-        %case Elem1 of
-            %{str, "pieces"} -> {{str, NotParsed1}, "ee"};
-            %_        ->
-                to_erlang(NotParsed1),
-        %end,
-    %io:format("~p -> ~p~n", [Elem1, Elem2]),
-    %io:get_line("continue?"),
+    {Elem2, NotParsed2} = to_erlang(NotParsed1),
     NewAcc = [{Elem1, Elem2} | Acc],
     case NotParsed2 of
         [$e|NotParsed3] -> {{dico, lists:reverse(NewAcc)}, NotParsed3};
@@ -58,7 +55,6 @@ readtorrent(FileName) ->
     file:close(S),
     Result.
 
-
 get_lines(S) -> get_lines(S, []).
 get_lines(S, Acc) ->
     Line = io:get_line(S, ''),
@@ -66,8 +62,6 @@ get_lines(S, Acc) ->
         eof -> lists:concat(lists:reverse([Line|Acc]));
         _   -> get_lines(S, [Line|Acc])
     end.
-
-
 
 %% erlang->bencode
 from_erlang({str, Str}) ->
@@ -83,44 +77,29 @@ from_erlang({dico, D}) ->
     Dtorrent = lists:map(fun({X, Y}) -> from_erlang(X) ++ from_erlang(Y) end, D),
     "d" ++ lists:concat(Dtorrent) ++ "e".
 
-
 info_hash(Torrent) ->    
     {{dico, Data},_} = readtorrent(Torrent),
     {value, {_, Info}} = lists:keysearch({str, "info"}, 1, Data),
-    %%bin_to_hexstr(sha1(from_erlang(Info))).
-    %%io_lib:format("~s", [sha1(from_erlang(Info))]).
-      sha1(from_erlang(Info)).
-   
+    sha1(from_erlang(Info)).
 
 sha1(X) ->
-    %% crypto:start(),
     crypto:sha(X).
-    %% crypto:stop(),
-    %% S.
 
-%peer_id() ->
-    
-
-
-%% wtf with utf8 ? [NOT WORKING]
 my_split(N, Xs) -> my_split(N, Xs, []).
-
 my_split(0, Rest, Acc) -> {lists:reverse(Acc), Rest};
 my_split(N, [], Acc) -> {lists:reverse(Acc), []};
 my_split(N, [X,Y|Xs], Acc) when X == 195 -> my_split(N - 1, Xs, [X,Y|Acc]);
 my_split(N, [X|Xs], Acc) -> my_split(N - 1, Xs, [X|Acc]).
 
-
-%%%CHanging from binary to 
-
+ 
 hex(N) when N < 10 ->
     $0+N;
 hex(N) when N >= 10, N < 16 ->
     $a+(N-10).
-   
+
 to_hex(N) when N < 256 ->
     [hex(N div 16), hex(N rem 16)].
- 
+
 list_to_hexstr([]) -> 
     [];
 list_to_hexstr([H|T]) ->
@@ -129,19 +108,19 @@ list_to_hexstr([H|T]) ->
 bin_to_hexstr(Bin) ->
     list_to_hexstr(binary_to_list(Bin)).
 
-%%%Here ends the original
 
-%% Take a binary and return a list of tuples divided into 32-bit and 16-bit integer chunks.  
+%% @doc Take a binary and return a list of tuples divided into 32-bit and 16-bit integer chunks.  
 divide_byte(<<>>, Acc) ->
-   lists:reverse(Acc);
-
+    lists:reverse(Acc);
 divide_byte(<<E1:8,E2:8,E3:8,E4:8, Port:16, Rest/binary>>, Acc) ->
-     IP = merge_ip(E1,E2,E3,E4),
-     divide_byte(Rest, [{ip,IP, port,{Port}} | Acc]).
+    IP = merge_ip(E1,E2,E3,E4),
+    divide_byte(Rest, [{ip,IP, port,{Port}} | Acc]).
 
+%% @doc Merge ip adresses which is received from tracker.
 merge_ip(E1, E2, E3, E4) ->
     integer_to_list(E1) ++ "." ++ integer_to_list(E2) ++ "." ++ integer_to_list(E3) ++ "." ++ integer_to_list(E4).
 
+%% @doc Parse the ip adress out of tracker response.
 get_ip_list(Tracker_res)->
     {{dico, Data},_} = to_erlang(Tracker_res),
     {value, {{str,_},{str,Peer_list}}}= lists:keysearch({str, "peers"},1,Data),
