@@ -1,4 +1,4 @@
-%% Author: Rashid Darwish
+%% Author: Rashid Darwish . . . 
 %% Created: 2011-11-14
 %% Description: Establishing the connection with torrents Peers.
 

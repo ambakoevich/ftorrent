@@ -274,8 +274,13 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 %% is downloaded and sets the gauge accordingly
 	{piece_downloaded} ->
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
+	    case Value > 99 of 
+		true  ->  wxGauge:setValue(Gauge,100),
+	    wxStaticText:setLabel(DownldStatus, integer_to_list(100) ++ "%");
+	        false ->
 	    wxGauge:setValue(Gauge,Value),
-	    wxStaticText:setLabel(DownldStatus, integer_to_list(Value) ++ "%"),
+	    wxStaticText:setLabel(DownldStatus, integer_to_list(Value) ++ "%")
+			 end,
 	    loop(State, Manager,Piece_total + 1,Status,PreviousTime)
     end.
 
