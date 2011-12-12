@@ -22,10 +22,10 @@ stop(Pid) ->
 
 %% @doc Initialize the loop and create ETS table. Start the main loop
 init() ->
-    loop(ets:new(temp,[])).
+    loop(ets:new(temp,[]),[],[]).
 
 %% @doc Main loop. Receives messages and initializes connections
-loop(Torrent_info) ->
+loop(Torrent_info,Ip_list,Use_Ip) ->
     receive
 	{start_manager,Torrent, GUI_Pid}->
             Torrent_info_new = db:start(Torrent),
@@ -36,7 +36,7 @@ loop(Torrent_info) ->
 	    link(B),
 	    pm ! {ok,db:retreive_hash_binary(Torrent)},
 	    GUI_Pid ! {table, Torrent_info_new},
-	    loop(Torrent_info_new);
+	    loop(Torrent_info_new,Ip_list,Use_Ip);
 	{connect, GUI_Pid} ->
 	    io:format("Connecting~n"),
 	    Resp = tracker:start(db:concat()),
@@ -45,10 +45,18 @@ loop(Torrent_info) ->
 	    io:format("~p~n",[Ips]),
             [{ip,Ip,port,{Port}}|_] = Ips,
             io:format("Ip is~p Port is ~p~n",[Ip,Port]),
-	    Peer_list = handshake_peers(Ips, [], db:read("InfoHashBinary"), 5),
+	    {NewIp,Peer_list} = handshake_peers(Ips, [], db:read("InfoHashBinary"), 1),
 	    io:format("***THE LIST*** ~p~n", [Peer_list]),
             GUI_Pid ! {peer_list, Peer_list},
-	    loop(Torrent_info);
+	    NewUse_Ip = Peer_list,
+	    io:format("looping"),
+	    loop(Torrent_info,NewIp,NewUse_Ip);
+	{ip_closed} ->
+	    io:format("new Peer process being created"),
+	    {NewIp,[Peer_list|_]} = handshake_peers(Ip_list, [], db:read("InfoHashBinary"), 1),
+	    NewUse_Ip = [Peer_list|Use_Ip],
+	    io:format("New Used Ip list~p~n",[NewUse_Ip]),
+	    loop(Torrent_info,NewIp,NewUse_Ip);
 	{stop} ->
 	    io:format("Manager being killed"),
 	    stopped
@@ -64,7 +72,7 @@ handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     %% Pid ! {start},
     handshake_peers(T, List, Hash, Limit - 1);
 
-handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, 0) ->
-    Acc;
+handshake_peers(Rest, Acc, Hash, 0) ->
+    {Rest,Acc};
 handshake_peers([], Acc, Hash, Limit) ->
-    Acc.
+    {[],Acc}.

@@ -78,6 +78,7 @@ loop(Socket) ->
 	    connection_mngr:send_keepAlive(Socket),
 	    loop(Socket);
 	{error, drop_connection, Ip} ->
+	    manager ! {ip_closed},
 	    io:format("~nNo Such Peer: ~p~n",[Ip]);
             
 	R -> 
