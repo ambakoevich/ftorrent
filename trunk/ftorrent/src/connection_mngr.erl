@@ -11,7 +11,6 @@
 receiver(Socket,Piece,Size)->
     receive
 	{tcp, _,<<?PIECE, ChunkNumber:32, Offset:32, Block/binary>>} -> 
-	    gui ! {block_downloaded},
 	    io:format("~nOffset: ~p ~p ~p~n", [Offset, ChunkNumber, Socket]),
 	    LastBlockSize = Size rem ?LENGTH,
 	    case LastBlockSize of 
