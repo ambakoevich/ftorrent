@@ -11,24 +11,27 @@ start()->
     
 loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     receive
+	{ok, file_downloaded} -> 
+	    io:format("~n FILE DOWNLOADED ~n");
+	    %% exit("file_downloaded");
+	    %% loop(WishList, DownloadedList, PeersList, Inprocess, HashList);
+	
         {ok, Hash}-> 
 	    loop(WishList, DownloadedList, PeersList, Inprocess, list_to_binary(Hash));
         {bitfield,Pid, Bitfield} ->
-            io:format("~nNewBit: ~p  ~n", [filter:join_set([{Bitfield, Pid}|PeersList], DownloadedList)]),
 	    self() ! {check_interested, Pid},
 	    UpdatedWishList = filter:join_set([{Bitfield, Pid}|PeersList], join_pieces(DownloadedList, Inprocess)),
 	    loop(UpdatedWishList, DownloadedList, [{Bitfield, Pid}|PeersList], Inprocess,HashList);
 
 	{have, Pid, Piece} -> 
-	    io:format("~nHAVE: ~p~n", [Piece]),
 	    UpdatedPeesList = filter:update_have(PeersList,Piece,Pid,[]),
 	    UpdatedWishList = filter:join_set(UpdatedPeesList, join_pieces(DownloadedList, Inprocess)),
 	    loop(UpdatedWishList, DownloadedList, UpdatedPeesList,Inprocess,HashList );
 
 	{select_piece, Pid} ->
 	    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Inprocess))),
+            
 	    PieceNumber =  select_piece(UpdatedWishList, Pid, Inprocess),
-	     io:format("~n AT 1 select_piece ~p~n",[PieceNumber]),
 	    case is_integer(PieceNumber) of
 		true->
 		    loop(UpdatedWishList, DownloadedList, PeersList, [PieceNumber|Inprocess],HashList);
@@ -38,48 +41,45 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 
 	{check_piece, Pid, ChunkNumber, Piece}->
             case validate_hash:find_hash(HashList,crypto:sha(Piece)) of
-		
+
 		false ->
 		    Updated_Process = remove_piece(ChunkNumber,Inprocess),
 		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(DownloadedList, Updated_Process))),
 		    pm ! {select_piece, Pid},
 		    loop(UpdatedWishList,DownloadedList, PeersList, Updated_Process,HashList);
-	
+
 		true ->
-		    gui ! {piece_downloaded},
-		    io:format("~n >>>>>>>>>>>>>>>>>>>>>  piece_validated"),
 		    io ! {print_to_file,Pid,(ChunkNumber*db:read("pieceSize")),Piece},
 		    [{L, _}] = DownloadedList,
 		    Downloaded =  [{[ChunkNumber|L], self()}],
 		    Updated_Process = remove_piece(ChunkNumber,Inprocess),
-		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),	   
+		    UpdatedWishList = filter:get_rarest(filter:join_set(PeersList, join_pieces(Downloaded, Updated_Process))),
+		     gui ! {piece_downloaded},
 		    loop(UpdatedWishList,Downloaded, PeersList, Updated_Process,HashList)
 	    end;   
-        
-        {ok, end_game, Pid} -> check_size(lists:last(Inprocess), Pid),
-                               loop(WishList, DownloadedList, PeersList,Inprocess,HashList);
 
-	{check_interested, Pid} -> 
-	    case filter:lookup(WishList, Pid) of 
-		pid_not_there -> not_interested(Pid);
-		_  -> interested(Pid)
-	    end,
-	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
-    end. 
+		{check_interested, Pid} -> 
+		    case filter:lookup(WishList, Pid) of 
+			pid_not_there -> not_interested(Pid);
+			_  -> interested(Pid)
+		    end,
+		    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
+	    end. 
 
 
 select_piece([], _Pid, []) ->
-    io:format("~n FILE Downloaded~n"),
     case db:read("path") of
     	na ->
-    	    nothing_to_extract;
+    	    nothing_to_extract,
+	    self() ! {ok, file_downloaded};
     	_List ->
 	    {ok, Current_dir} = file:get_cwd(),
 	    Dest = Current_dir++"/"++"Torrent_Files",
 	    case file:make_dir(Dest) of
 		ok ->
 		    io:format("created dir ~p~n", [Dest]),
-		    mm:extend(Dest, Current_dir++"/"++db:read("FileName"));
+		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
+		     self() ! {ok, file_downloaded};
 		{error,eexist} ->
 		    mm:extend(Dest, Current_dir++"/"++db:read("FileName"));
 		{error,Reason} ->
@@ -87,9 +87,11 @@ select_piece([], _Pid, []) ->
 	    end
     end;
 
-select_piece([], Pid, _) ->
-    self()! {ok, end_game, Pid};
-%%Pid ! {ok, keepAlive};
+select_piece([], Pid, Inprocess) ->
+    case length(Inprocess) of 
+	0 ->  Pid ! {ok, keepAlive};
+	_ ->     check_size(lists:last(Inprocess), Pid)
+    end;
 
 select_piece(WishList, Pid, _)-> 
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
@@ -98,9 +100,8 @@ select_piece(WishList, Pid, _)->
 	    check_size(PieceNumber, Pid),
 	    PieceNumber;
 	false -> 
-	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
+	    io:format("pid_not_there_error~n")
 	    %%   Pid ! {ok, keepAlive},
-	    self()!{ok, end_game, Pid}
     end.
     
 interested(Pid)->
@@ -111,7 +112,6 @@ not_interested(Pid)->
 
 
 check_size(Index, Pid)->
-    io:format("~n AT check_size  ~p~n",[Index]),
 	   case db:read("NoOfPieces") of %% change -1
 	       Index ->  Pid ! {start_download,Index,db:read("LastPieceSize")};
 	       _ -> Pid ! {start_download,Index,db:read("pieceSize")}
@@ -124,13 +124,10 @@ join_pieces(DownloadedList, Inprocess)->
 
 
 remove_piece(Piece,[Piece|Inprocess])->
-io:format("~nInprocess1: ~p~n", [Inprocess]),
     Inprocess;
 remove_piece(Piece,[H|Inprocess])->
-io:format("~nInprocess2: ~p~n", [Inprocess]),
     [H|remove_piece(Piece, Inprocess)];
 remove_piece(_,[]) -> 
-io:format("~nInprocess3~n"),
 [].
 
 
