@@ -1,6 +1,8 @@
-%% Author: Rashid Darwish
-%% Created: 2011-11-14
-%% Description: Establishing the connection with torrents Peers.
+%% @author Rashid Darwish.
+%% @copyright Framework Studi
+%% @version v0.1
+%% @doc Created: 14-Nov-2011, handshake establishes connection with peers.
+%% This is done by sending/receiving 'handshake'.
 
 -module(handshake).
 -compile(export_all).
@@ -16,13 +18,15 @@ connect(Ip,Port,Hash) ->
 	{error,etimedout} ->{error, drop_connection, Ip}
     end.
 	
-
+%% @doc Send handshake using Socket and Info_Hash which itself,
+%% is retreived from .torrent file.
 sendHandShake(Socket, Info_Hash) ->
     ok = gen_tcp:send(Socket, [?PSTRLEN, ?PSTR,
 			       ?RESERVED,
 			       Info_Hash,
 			       ?FWSID]).
-    
+
+%% @doc Receive handshake from peer.    
 recv(Socket, Info_Hash)->
     case gen_tcp:recv(Socket,?HANDSHAKE_SIZE) of
 	{ok, <<?PSTRLEN, ?PSTR, 
