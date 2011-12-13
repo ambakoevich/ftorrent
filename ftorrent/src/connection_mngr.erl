@@ -11,7 +11,7 @@
 receiver(Socket,Piece,Size)->
     receive
 	{tcp, _,<<?PIECE, ChunkNumber:32, Offset:32, Block/binary>>} -> 
-	    io:format("~nOffset: ~p ~p ~p~n", [Offset, ChunkNumber, Socket]),
+	    %% io:format("~nOffset: ~p ~p ~p~n", [Offset, ChunkNumber, Socket]),
 	    LastBlockSize = Size rem ?LENGTH,
 	    case LastBlockSize of 
 		0 when Offset/=(Size-?LENGTH)-> ok = gen_tcp:send(Socket, [<<?REQUEST, ChunkNumber:32, (Offset+?LENGTH):32, ?LENGTH:32>>]),
