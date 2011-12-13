@@ -56,8 +56,13 @@ loop(Socket) ->
 	    loop(Socket);
 
         {ok, piece_downloaded, ChunkNumber, Piece} ->
-            pm ! {check_piece, self(), ChunkNumber, lists:reverse(Piece)},
-	    io:format("~n piece_downloaded~n"),
+	    case  whereis(pm) of
+		undefined -> 
+		    loop(Socket);
+		_ ->  pm ! {check_piece, self(), ChunkNumber, lists:reverse(Piece)},
+		      io:format("~n piece_downloaded:~p~n",[ChunkNumber])
+	    end,
+	    
 	    loop(Socket);
 
 	{tcp,_,?KEEP_ALIVE} -> 
