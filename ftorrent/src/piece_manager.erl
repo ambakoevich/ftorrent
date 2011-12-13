@@ -68,12 +68,28 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     end. 
 
 
-select_piece([], Pid, []) ->
-    io:format("~n FILE Downloaded~n");
+select_piece([], _Pid, []) ->
+    io:format("~n FILE Downloaded~n"),
+    case db:read("path") of
+    	na ->
+    	    nothing_to_extract;
+    	_List ->
+	    {ok, Current_dir} = file:get_cwd(),
+	    Dest = Current_dir++"/"++"Torrent_Files",
+	    case file:make_dir(Dest) of
+		ok ->
+		    io:format("created dir ~p~n", [Dest]),
+		    mm:extend(Dest, Current_dir++"/"++db:read("FileName"));
+		{error,eexist} ->
+		    mm:extend(Dest, Current_dir++"/"++db:read("FileName"));
+		{error,Reason} ->
+		    Reason
+	    end
+    end;
 
 select_piece([], Pid, _) ->
     self()! {ok, end_game, Pid};
-    %%Pid ! {ok, keepAlive};
+%%Pid ! {ok, keepAlive};
 
 select_piece(WishList, Pid, _)-> 
     {PieceNumber,[{_,_}]} = filter:lookup(WishList, Pid),
@@ -83,8 +99,8 @@ select_piece(WishList, Pid, _)->
 	    PieceNumber;
 	false -> 
 	    io:format("pid_not_there ERRORRRRRRRRRRRRRR~n"),
-	 %%   Pid ! {ok, keepAlive},
-	   self()!{ok, end_game, Pid}
+	    %%   Pid ! {ok, keepAlive},
+	    self()!{ok, end_game, Pid}
     end.
     
 interested(Pid)->
