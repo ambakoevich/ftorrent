@@ -12,8 +12,8 @@ start()->
 loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     receive
 	{ok, file_downloaded} -> 
-	    io:format("~n FILE DOWNLOADED ~n");
-	    %% exit("file_downloaded");
+	    flush_all(),
+	    io:format("~n ***FILE DOWNLOADED*** ~n");
 	    %% loop(WishList, DownloadedList, PeersList, Inprocess, HashList);
 	
         {ok, Hash}-> 
@@ -68,24 +68,7 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 
 
 select_piece([], _Pid, []) ->
-    case db:read("path") of
-    	na ->
-    	    nothing_to_extract,
-	    self() ! {ok, file_downloaded};
-    	_List ->
-	    {ok, Current_dir} = file:get_cwd(),
-	    Dest = Current_dir++"/"++"Torrent_Files",
-	    case file:make_dir(Dest) of
-		ok ->
-		    io:format("created dir ~p~n", [Dest]),
-		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
-		     self() ! {ok, file_downloaded};
-		{error,eexist} ->
-		    mm:extend(Dest, Current_dir++"/"++db:read("FileName"));
-		{error,Reason} ->
-		    Reason
-	    end
-    end;
+ self() ! {ok, file_downloaded};
 
 select_piece([], Pid, Inprocess) ->
     case length(Inprocess) of 
@@ -132,4 +115,12 @@ remove_piece(_,[]) ->
 
 
 
-    
+flush_all()->
+    receive 
+	_->
+	    flush_all()
+    after 0 -> 
+	    io ! {ok, extract}
+    end.
+	 
+	    
