@@ -12,6 +12,30 @@ start()->
 
 loop()->
     receive
+	{ok, extract}-> 
+	    case db:read("path") of
+		na ->
+		    {ok, Current_dir} = file:get_cwd(),
+		    Dest = Current_dir++"/"++"Torrent_Files",
+		    file:copy(db:read("FileName"), Dest++"/"++db:read("FileName")),
+		    file:delete(db:read("FileName"));
+
+    	_List ->
+	    {ok, Current_dir} = file:get_cwd(),
+	    Dest = Current_dir++"/"++"Torrent_Files",
+	    case file:make_dir(Dest) of
+		ok ->
+		    io:format("created dir ~p~n", [Dest]),
+		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
+		     file:delete(db:read("FileName"));
+		     
+		{error,eexist} ->
+		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
+		file:delete(db:read("FileName"));
+		{error,Reason} ->
+		    Reason
+	    end
+    end;
     {print_to_file,Pid,Offset,Piece} ->
 	    print_to_file(db:read("FileName"),Offset,Piece),
             pm ! {select_piece, Pid},
