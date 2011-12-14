@@ -85,8 +85,7 @@ select_piece(WishList, Pid, _)->
 	    check_size(PieceNumber, Pid),
 	    PieceNumber;
 	false -> 
-	    io:format("pid_not_there_error~n")
-	    %%   Pid ! {ok, keepAlive},
+	    io:format("pid_not_there ~n")
     end.
     
 interested(Pid)->
