@@ -31,8 +31,9 @@ receiver(Socket,Piece,Size)->
 		     receiver(Socket,[Block|Piece],Size)
 	    end;
 
-        {piece_downloaded, ChunkNumber}-> self() ! {ok, piece_downloaded, ChunkNumber, Piece}
-    %% after 30000 ->   self() ! {error, no_response}
+        {piece_downloaded, ChunkNumber}-> self() ! {ok, piece_downloaded, ChunkNumber, Piece};
+	_ -> self() ! {error, drop_connection}
+     after 30000 ->   self() ! {error, drop_connection}
 			 
     end.
 
