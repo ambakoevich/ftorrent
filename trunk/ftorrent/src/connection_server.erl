@@ -85,7 +85,9 @@ loop(Socket) ->
 	{error, drop_connection, Ip} ->
 	    manager ! {ip_closed},
 	    io:format("~nNo Such Peer: ~p~n",[Ip]);
-            
+        {error, drop_connection} ->
+	    manager ! {ip_closed},
+	    io:format("~n NO Response~n");
 	R -> 
 	    io:format("~n>>>>REPLAY ~p~n", [R]),
 	    loop(Socket)
