@@ -63,8 +63,10 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 			pid_not_there -> not_interested(Pid);
 			_  -> interested(Pid)
 		    end,
-		    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
-	    end. 
+	    loop(WishList, DownloadedList, PeersList,Inprocess,HashList)
+    end.
+
+
 
 
 select_piece([], _Pid, []) ->
