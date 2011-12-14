@@ -45,7 +45,7 @@ loop(Torrent_info) ->
 	    io:format("~p~n",[Ips]),
             [{ip,Ip,port,{Port}}|_] = Ips,
             io:format("Ip is~p Port is ~p~n",[Ip,Port]),
-	    Peer_list = handshake_peers(Ips, [], db:read("InfoHashBinary"), 5),
+	    Peer_list = handshake_peers(Ips, [], db:read("InfoHashBinary"), 10),
 	    io:format("***THE LIST*** ~p~n", [Peer_list]),
             GUI_Pid ! {peer_list, Peer_list},
 	    loop(Torrent_info);
