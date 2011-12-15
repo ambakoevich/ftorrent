@@ -8,43 +8,46 @@
 -compile(export_all).
 
 %% @doc starts the module
-start()->
-    loop().
+start(Source_path)->
+    Full_name = Source_path++"/"++db:read("FileName"),
+    loop(Source_path, Full_name).
 
 %% @doc receiving the builded pieces from the piece manager
 %% and extracting the multi torrent files
 %% implemented by Rashid and Batbilig
-loop()->
+loop(Source_path, Full_name)->
     receive
 	{ok, extract}-> 
 	    case db:read("path") of
 		na ->
-		    {ok, Current_dir} = file:get_cwd(),
-		    Dest = Current_dir++"/"++"Torrent_Files",
-		    file:copy(db:read("FileName"), Dest++"/"++db:read("FileName")),
-		    file:delete(db:read("FileName"));
+		    %% {ok, Current_dir} = file:get_cwd(),
+		    %% Current_dir = Source_path,
+		    Dest = Source_path++"/"++"Torrent_Files",
+		    file:copy(Full_name, Dest++"/"++db:read("FileName")),
+		    file:delete(Full_name);
 
-    	_List ->
-	    {ok, Current_dir} = file:get_cwd(),
-	    Dest = Current_dir++"/"++"Torrent_Files",
-	    case file:make_dir(Dest) of
-		ok ->
-		    io:format("created dir ~p~n", [Dest]),
-		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
-		    file:delete(db:read("FileName"));
-		     
-		{error,eexist} ->
-		    mm:extend(Dest, Current_dir++"/"++db:read("FileName")),
-		file:delete(db:read("FileName"));
-		{error,Reason} ->
-		    Reason
-	    end
-    end;
-    {print_to_file,Pid,Offset,Piece} ->
-	    print_to_file(db:read("FileName"),Offset,Piece),
+		_List ->
+		    %% {ok, Current_dir} = file:get_cwd(),
+		    %% Current_dir = Source_path,
+		    Dest = Source_path++"/"++"Torrent_Files",
+		    case file:make_dir(Dest) of
+			ok ->
+			    io:format("created dir ~p~n", [Dest]),
+			    mm:extend(Dest, Full_name),
+			    file:delete(Full_name);
+
+			{error,eexist} ->
+			    mm:extend(Dest, Full_name),
+			    file:delete(Full_name);
+			{error,Reason} ->
+			    Reason
+		    end
+	    end;
+	{print_to_file,Pid,Offset,Piece} ->
+	    print_to_file(Full_name,Offset,Piece),
             pm ! {select_piece, Pid},
-	    loop()
-end.
+	    loop(Source_path, Full_name)
+    end.
 
 %% @doc writing the piece data to the file 
 print_to_file(Name,Offset,Data)-> 
