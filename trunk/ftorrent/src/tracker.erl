@@ -4,7 +4,7 @@
 %% @doc Created: 20-Oct-2011, Tracker establishes connection with torrent trackers.
 
 -module(tracker).
--export([start/1]).
+-export([start/1, get_request/1]).
 
 %% @doc Starting the module
 start(URL)->
