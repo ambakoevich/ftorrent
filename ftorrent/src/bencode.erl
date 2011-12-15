@@ -82,6 +82,11 @@ info_hash(Torrent) ->
     {value, {_, Info}} = lists:keysearch({str, "info"}, 1, Data),
     sha1(from_erlang(Info)).
 
+info_hash_2(Torrent) ->    
+    {{dico, Data},_} = readtorrent(Torrent),    
+    {value, {_, Info}} = lists:keysearch({str, "info"}, 1, Data),
+    Info.
+
 sha1(X) ->
     crypto:sha(X).
 

@@ -20,7 +20,7 @@ find_hash(<<_:160/bitstring, Rest/bitstring>>, Piece) ->
 
 %% @doc Return the concatenation of 20-byte hash info as a binary. 
 get_hash(Torrent) ->    
-    {_, [_,_,_,{_,{_,L2}}]} = bencode:info_hash(Torrent),
+    {_, [_,_,_,{_,{_,L2}}]} = bencode:info_hash_2(Torrent),
     list_to_binary(L2).
 
 
