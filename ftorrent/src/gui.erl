@@ -262,17 +262,14 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 	{peer_list, Peer_list} ->
 	    create_list_ctrl(Win3, Peer_list),
 	    loop(State, Manager,Piece_total,Status,PreviousTime);
-	{block_downloaded} ->
-	     {_,_,CurrentTime} = erlang:now(),
-	    Time_diff = ((CurrentTime - PreviousTime) / 100000),
-	    Speed = abs(round((16384 / 1024) / Time_diff)),
-	    io:format("Klaipeda is time  ~p~n",[Time_diff]),
-	    wxFrame:setStatusText(Frame, "                Download:  " ++ integer_to_list(Speed) ++ "  kB/s"),
-	     loop(State, Manager,Piece_total,Status,CurrentTime);
-
-%% @doc Receiving messages from piece manager after every peice 
-%% is downloaded and sets the gauge accordingly
+       
+ %% @doc Receiving messages from piece manager after every peice 
+ %% is downloaded and sets the gauge accordingly
 	{piece_downloaded} ->
+	        {_,_,CurrentTime} = erlang:now(),
+	     Time_diff = ((CurrentTime - PreviousTime) / 100000),
+	     Speed = abs(round((db:read("pieceSize") / 1024) / Time_diff)),
+	     wxFrame:setStatusText(Frame, "                Download:  " ++ integer_to_list(Speed) ++ "  kB/s"),
 	    Value =  round((Piece_total / db:read("NoOfPieces")) * 100),
 	    case Value > 99 of 
 		true  ->  wxGauge:setValue(Gauge,100),
