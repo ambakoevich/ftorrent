@@ -1,19 +1,29 @@
-%% Connection Server . . . 
+%% @ Author: Rashid Darwish
+%% @ Version v0.1
+%% @doc Created: 14-11-2011
+%% Description: Spawnning new process for each ip, Receiving all msg´s from the peer, 
 -module(connection_server).
 -compile(export_all).
 -include("constants.hrl").
 
+%% @doc Starts the connection server
+%% Takes 3 arguments, peer Ip, peer port, torrent Hash
+%% Returns Pid 
 start(Ip,Port, Hash)-> 
-    Pid= init(Ip,Port, Hash),
+    Pid = init(Ip,Port, Hash),
     Pid.
 
+%% @doc spawnning a process for the peer
+%% Takes 3 arguments, peer Ip, peer port, torrent Hash
+%% Returns Pid 
 init(Ip,Port, Hash)->
     Pid = spawn(?MODULE,loop,[0]),
     Pid ! {start_server,Ip,Port,Hash},
     Pid.
 
 
-
+%% @doc loop receiving all msg´s from the peer
+%% Takes 1 Socket argument, S
 loop(Socket) ->
     receive                 
 	{start_server,Ip,Port,Hash} ->  
@@ -89,7 +99,7 @@ loop(Socket) ->
 	    manager ! {ip_closed},
 	    io:format("~n NO Response~n");
 	R -> 
-	    io:format("~n>>>>REPLAY ~p~n", [R]),
+	    io:format("~n>>>> ~p~n", [R]),
 	    loop(Socket)
     end.
 

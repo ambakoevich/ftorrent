@@ -2,12 +2,14 @@
 %% @copyright Framework Studi
 %% @version v0.1
 %% @doc Created: 14-Nov-2011, handshake establishes connection with peers.
-%% This is done by sending/receiving 'handshake'.
 
 -module(handshake).
 -compile(export_all).
 -include("constants.hrl").
-%%46.239.106.179
+
+%% @connects to the peer
+%% msg passing the socket to the connection server
+%% Take 3 arguments peer Id, peer port and torrent´s Hash 
 connect(Ip,Port,Hash) ->
     case gen_tcp:connect(Ip,Port,?INETHS) of
 	{ok, Socket}  -> 
