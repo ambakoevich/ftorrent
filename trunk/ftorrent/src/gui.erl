@@ -206,8 +206,13 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 		    FD=wxFileDialog:new(Frame,[{message,"   Select torrent file to open  "}]),
 		    case wxFileDialog:showModal(FD) of
 			?wxID_OK ->      %% Open is clicked show the Dialog.
-			    Filename = wxFileDialog:getFilename(FD),   
-			    Manager ! {start_manager, Filename, self()},
+			    Filename = wxFileDialog:getFilename(FD),
+
+			    Fpath = wxFileDialog:getDirectory(FD),
+			    %%io:format("DIRrtt...~p~n", [Fpath]),
+			    Fpath_converted = filter:replace_values(Fpath, [$\\], $/),
+
+			    Manager ! {start_manager, Filename, self(), Fpath_converted},
 			    %%self() ! {change_icon},
 			    %%file_image(Panel, StaticBitmap, FileName),
 			    wxFileDialog:destroy(FD);
