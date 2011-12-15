@@ -1,7 +1,14 @@
+%% @author Paulius Vysniauskas
+%% @copyright Framework Studio
+%% @version v0.1
+%% @doc Created: 10-Dec-2011, tests the algorithm to select the rarest
+%% piece available between peers by providing sample data.
+
 -module(filter_tests).
 -include_lib("eunit/include/eunit.hrl").
 -import(filter, [find/2, filter_values/2, sort_added/2, filter_peer_set/2, join_set/2, get_rarest/1, update_have/4, lookup/2]).
 
+%% @doc Get list of pieces sorted by availability.
 get_rarest_test_() ->
     L1 = {[1,2,3,45,6],pid1},
     L2 = {[1,2,5,7,8,3],pid2},
