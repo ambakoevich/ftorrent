@@ -6,9 +6,9 @@
 %% joins two lists to one and sorts it later.
 
 -module(filter).
--export([find/2, filter_values/2, sort_added/2, filter_peer_set/2, join_set/2, get_rarest/1, update_have/4, lookup/2]).
+-export([find/2, filter_values/2, sort_added/2, filter_peer_set/2, join_set/2, get_rarest/1, update_have/4, lookup/2, replace_values/3]).
 -import(histogram, [gen_hist/3, sort_hist/2]).
--compile(export_all).
+
 
 %% @doc Check if the given element exists in the list
 find([], _) ->
@@ -17,6 +17,24 @@ find([E|_T], E) ->
     true;
 find([_H|T], E) ->
     find(T, E).
+
+
+%% Run: filter:replace_values("c:\\Users\\bilgee\\Downloads", [$\\], $/).
+%% ---------------------------------------------------------------------
+%% This function searches certain character and replaces it with new given char
+replace_values([], _Find, _Replace_char) ->
+    [];
+replace_values([H|T], Find, Replace_char) ->
+    case find(Find, H) of
+	true ->
+	    [Replace_char | replace_values(T, Find, Replace_char)];
+	false ->
+	    [H | replace_values(T, Find, Replace_char)]
+    end.
+
+
+
+
 
 %% @doc Filter out all occurrences/elements of list two from list one
 %% and return list one
