@@ -7,7 +7,7 @@
 -compile(export_all).
 -include("constants.hrl").
 
-%% @connects to the peer
+%% @doc connects to the peer
 %% msg passing the socket to the connection server
 %% Take 3 arguments peer Id, peer port and torrent´s Hash 
 connect(Ip,Port,Hash) ->
