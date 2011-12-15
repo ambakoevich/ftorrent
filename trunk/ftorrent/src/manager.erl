@@ -27,11 +27,11 @@ init() ->
 %% @doc Main loop. Receives messages and initializes connections
 loop(Torrent_info) ->
     receive
-	{start_manager,Torrent, GUI_Pid}->
+	{start_manager,Torrent, GUI_Pid, Fpath}->
             Torrent_info_new = db:start(Torrent),
 	    io:format("Starting manager~n"),
 	    register(pm,A = spawn(piece_manager, start,[])),
-	    register(io,B = spawn(io_manager, start,[])),
+	    register(io,B = spawn(io_manager, start,[Fpath])),
 	    link(A),
 	    link(B),
 	    pm ! {ok,db:retreive_hash_binary(Torrent)},
