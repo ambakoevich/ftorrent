@@ -5,7 +5,7 @@
 %% Binary data is received from piece_manager and is written to file.
 
 -module(io_manager).
--compile(export_all).
+-export([start/1, loop/2,print_to_file/3]).
 
 %% @doc starts the module
 start(Source_path)->

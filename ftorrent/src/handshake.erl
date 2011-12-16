@@ -4,7 +4,7 @@
 %% @doc Created: 14-Nov-2011, handshake establishes connection with peers.
 
 -module(handshake).
--compile(export_all).
+-export([connect/3,sendHandShake/2,recv/2]).
 -include("constants.hrl").
 
 %% @doc connects to the peer
