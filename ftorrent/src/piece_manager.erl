@@ -1,14 +1,23 @@
-%% PIECE MANAGER.
+%% @author Rashid Darwish
+%% @copyright Framework Studio.
+%% @version v0.1
+%% @doc Created: 20-Nov-2011. receiving msgs from the connection manager and server
+%% chooses a piece to download and from which peer to download it
+
+
+
 -module(piece_manager).
 -compile(export_all).
 -include("constants.hrl").
 
 
-
+%% @doc starts the piece manager
 start()->
     io:format("piece_manager started..."),
     loop([],[{[],self()}],[], [], []).
-    
+
+%% @doc loop recieving the msg
+%% msg passing the complete piece to io     
 loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
     receive
 	{ok, file_downloaded} -> 
@@ -68,8 +77,12 @@ loop(WishList, DownloadedList, PeersList, Inprocess, HashList)->
 
 
 
-
-select_piece([], _Pid, []) ->
+%% @doc selecting a piece to download
+%% takes 3 arguments WishList, PID, Inprocess
+%% wishlist is the piece needed to be download
+%% pid identify which process to download from
+%% Inprocess the pieces are already in action but not finished downloading 
+select_piece([], _, []) ->
  self() ! {ok, file_downloaded};
 
 select_piece([], Pid, Inprocess) ->
@@ -87,26 +100,29 @@ select_piece(WishList, Pid, _)->
 	false -> 
 	    io:format("pid_not_there ~n")
     end.
-    
+ 
+%% @doc sending interested msg to a peer   
 interested(Pid)->
     Pid ! {send_interested}.
 
+%% @doc sending not_interested msg to a peer
 not_interested(Pid)->
    Pid ! {send_not_interested}.
 
-
+%% @doc checks the size of the piece,
+%%  msg passing the size to download it
 check_size(Index, Pid)->
-	   case db:read("NoOfPieces") of %% change -1
+	   case db:read("NoOfPieces") of 
 	       Index ->  Pid ! {start_download,Index,db:read("LastPieceSize")};
 	       _ -> Pid ! {start_download,Index,db:read("pieceSize")}
 	   end.
 					    
-
+%% @doc join the pieces are already downloading in a downloadedlist
 join_pieces(DownloadedList, Inprocess)->
     [{List, _}] = DownloadedList,
     [{lists:umerge(lists:sort(List), lists:sort(Inprocess)), self()}].
 
-
+%% @doc remove the index of the piece from a list
 remove_piece(Piece,[Piece|Inprocess])->
     Inprocess;
 remove_piece(Piece,[H|Inprocess])->
@@ -115,7 +131,7 @@ remove_piece(_,[]) ->
 [].
 
 
-
+%% @doc emptying all remaining msg from the mailbox after finishing downloading the file
 flush_all()->
     receive 
 	_->
