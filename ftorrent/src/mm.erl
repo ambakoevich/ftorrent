@@ -6,8 +6,7 @@
 
 
 -module(mm).
--compile(export_all).
-%% -export([extend/1]).
+-export([extend/2,parse_items/3,create_parent/1,create_file/3,get_binary/1]).
 
 
 %% Run from shell:
