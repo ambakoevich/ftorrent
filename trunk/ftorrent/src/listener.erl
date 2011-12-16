@@ -77,34 +77,7 @@ run(Socket)->
 
 	{tcp,_,<<?UNCHOKE>>} -> 
 	    io:format("~nUNCHOKE: ~n"),
-	    run(Socket);
-
-	{tcp,_,<<?INTERESTED>>} -> 
-	    io:format("~n>>>>>>>>>>>>>>>>>>>>>>>>>>>> INTERESTED: ~n"),
-	    gen_tcp:send(Socket, [<<?UNCHOKE>>]),
-	    io:format("~n UNCHOKE SENT ~n"),
-	    run(Socket);
-
-	{tcp,_,<<?NOT_INTERESTED>>} -> 
-	    io:format("~n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> NOT_INTERESTED: ~n"),
-	    gen_tcp:send(Socket, [<<?CHOKE>>]),
-	    io:format("~n CHOKE SENT ~n"),
-	    run(Socket);
-
-	{tcp,_,<<?PIECE, B>>} -> 
-	    %% io:format("~nPIECE: ~p~n",[B]),
-	    run(Socket);
-
-	{tcp,_,<<?REQUEST, B:32>>} -> 
-	    io:format("~n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> REQUEST1: ~p~n",[B]),
-	    run(Socket);
-	{tcp,_,<<?REQUEST, B>>} -> 
-	    io:format("~n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> REQUEST2: ~p~n",[B]),
-	    run(Socket);
-
-	{tcp,_,<<?CANCEL, B>>} -> 
-	    io:format("~nCANCEL: ~p~n",[B]),
-	    run(Socket);
+	    run(Socket); 
 
 	R->
 	    io:format("~n>> ~p~n",[R]),
