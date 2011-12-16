@@ -4,8 +4,7 @@
 %% @doc Created: 15-Nov-2011, Gui_info displays messages dialogs of corresponding buttons.
 
 -module(gui_info).
--author("Ionut Trancioveanu").
--export([about/2,help/2,error_message/2]).
+-export([about/2,help/2,error_message/2,error_message2/2]).
 -include_lib("wx/include/wx.hrl").
 
 %% @doc About dialog box 
@@ -54,6 +53,14 @@ help(5, Frame) ->
 %% @doc Displaying content of error messages.
 error_message(2,  Frame) ->
     Str = string:join(["Please select a new torrent file "], "Previous torrent file canceled !"),
+    MDE = wxMessageDialog:new(Frame,
+			      Str,
+			      [{style, ?wxOK bor ?wxICON_ERROR},
+			       {caption, " Error Message!"}]),
+    wxDialog:showModal(MDE),
+    wxDialog:destroy(MDE).
+error_message2(1,  Frame) ->
+    Str = string:join([" Cancel previous torrent please "], " Cancel torrent file "),
     MDE = wxMessageDialog:new(Frame,
 			      Str,
 			      [{style, ?wxOK bor ?wxICON_ERROR},

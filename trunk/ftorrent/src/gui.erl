@@ -4,12 +4,12 @@
 %% @doc Created: 1-Oct-2011, 
 
 -module(gui).
--author("Ionut Trancioveanu").
 -export([start/1,new_window/0,loop/5]).
--import(gui_info,[about/2,help/2,error_message/2]).
--import(gui_util,[create_list_ctrl/2,check/1,file_image/2,limit_filename/3]).
+-import(gui_info,[about/2,help/2,error_message/2,error_message2/2]).
+-import(gui_util,[create_list_file/2, create_list_ctrl/2,check/1,file_image/2,limit_filename/3]).
 -include_lib("wx/include/wx.hrl").
 
+%% @doc Creating the start function.
 start(Manager)->
     State = new_window(),
     {_,_,CurrentTime} = erlang:now(),
@@ -27,7 +27,7 @@ new_window()->
 
 %% @doc Creating the Widgets which will be showed on the frame/panel. 
     
-    BitmapPause  = wxBitmap:new("Pause.png",    [{type,?wxBITMAP_TYPE_PNG}]),
+    BitmapStart  = wxBitmap:new("Start.png",    [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapCancel = wxBitmap:new("Cancel.png",   [{type,?wxBITMAP_TYPE_PNG}]),
     BitmapOpen   = wxBitmap:new("Openfile.png", [{type,?wxBITMAP_TYPE_PNG}]),
     Logo         = wxBitmap:new("Logo.png",     [{type,?wxBITMAP_TYPE_PNG}]),
@@ -41,7 +41,7 @@ new_window()->
     FileSize     = wxStaticText:new  (Panel, 51,"Size: ", []),
     FileSizeNA   = wxStaticText:new  (Panel, 61,"    N/A",[]),
     ButtonOpen   = wxBitmapButton:new(Panel,  1 , BitmapOpen),
-    ButtonPause  = wxBitmapButton:new(Panel,  2 ,BitmapPause),
+    ButtonStart  = wxBitmapButton:new(Panel,  2 ,BitmapStart),
     ButtonCancel = wxBitmapButton:new(Panel,  3,BitmapCancel),
     ButtonAbout  = wxBitmapButton:new(Panel,  4 ,BitmapAbout),
     ButtonHelp   = wxBitmapButton:new(Panel,  5 , BitmapHelp),
@@ -50,10 +50,10 @@ new_window()->
     Range = 100,
     Value = 0,
     wxBitmapButton:connect(ButtonOpen,  command_button_clicked),
-    wxBitmapButton:connect(ButtonPause, command_button_clicked),
+    wxBitmapButton:connect(ButtonStart, command_button_clicked),
     wxBitmapButton:connect(ButtonCancel,command_button_clicked),
     wxBitmapButton:setToolTip(ButtonOpen,  "Add torrent file "),
-    wxBitmapButton:setToolTip(ButtonPause,     "Start torrent"),
+    wxBitmapButton:setToolTip(ButtonStart,     "Start torrent"),
     wxBitmapButton:setToolTip(ButtonCancel,   "Cancel torrent"),
     Gauge = wxGauge:new(Panel,1,Range,[{size,{260,-1}},{style,?wxGA_HORIZONTAL}]),
     wxGauge:setValue(Gauge, Value),
@@ -62,7 +62,7 @@ new_window()->
     wxStaticText:setFont(DownloadText,Font2),
     wxStaticText:setFont(FileName,Font1),
     wxStaticText:setFont(FileSize,Font1),
-
+   
 %% @doc Creating Notebook in which the Info about torrent file will be shown.
 
     Notebook = wxNotebook:new(Panel, 1, [{style, ?wxBK_DEFAULT}]),
@@ -75,23 +75,23 @@ new_window()->
     wxImageList:add(IL, wxArtProvider:getBitmap("wxART_EXECUTABLE_FILE", [{size, {16,16}}])),
     wxNotebook:assignImageList(Notebook, IL),
     %% First tab field ("General").
-    Win1 = wxPanel:new(Notebook, []),
-    wxPanel:setBackgroundColour(Win1, {128,128,128}),
-    Win1Text = wxStaticText:new(Win1, ?wxID_ANY, "",[{pos, {50, 100}}]),
-    wxStaticText:setForegroundColour(Win1Text, ?wxWHITE),
-    Sizer1 = wxBoxSizer:new(?wxHORIZONTAL),
-    wxSizer:add(Sizer1, Win1Text),
-    wxPanel:setSizer(Win1, Sizer1),
+    Win1 = wxListCtrl:new(Notebook, [{style, ?wxLC_REPORT}]),
+    wxListCtrl:insertColumn(Win1, 0, "File",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 400}]),
+    wxListCtrl:insertColumn(Win1, 1, "Size",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 100}]),
+    wxListCtrl:insertColumn(Win1, 2, "Pieces",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 105}]),
+    wxListCtrl:setBackgroundColour(Win1, {128,128,128}),
+    wxListCtrl:setTextColour(Win1, ?wxWHITE),
     wxNotebook:addPage(Notebook, Win1, "General", []),
-    wxNotebook:setPageImage(Notebook, 0, 1),   
+    wxNotebook:setPageImage(Notebook, 0, 1),
     %% Second tab field ("Tracker").
-    Win2 = wxPanel:new(Notebook, []),
-    wxPanel:setBackgroundColour(Win2, {128,128,128}),
-    Win2Text = wxStaticText:new(Win2, ?wxID_ANY, "",[{pos, {50, 100}}]),
-    wxStaticText:setForegroundColour(Win2Text, ?wxWHITE),
-    Sizer2 = wxBoxSizer:new(?wxHORIZONTAL),
-    wxSizer:add(Sizer2, Win2Text),
-    wxPanel:setSizer(Win2, Sizer2),
+    Win2 = wxListCtrl:new(Notebook, [{style, ?wxLC_REPORT}]),
+    wxListCtrl:insertColumn(Win2, 0, "Tracker list",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 605}]),
+    wxListCtrl:setBackgroundColour(Win2, {128,128,128}),
+    wxListCtrl:setTextColour(Win2, ?wxWHITE),
     wxNotebook:addPage(Notebook, Win2, "Tracker", []),
     wxNotebook:setPageImage(Notebook, 1,4),
     %% Third tab field ("Peers").
@@ -103,13 +103,15 @@ new_window()->
     wxListCtrl:setTextColour(Win3, ?wxWHITE),
     wxNotebook:setPageImage(Notebook, 2,2),
     %% Fourth tab field ("File").
-    Win4 = wxPanel:new(Notebook, []),
-    wxPanel:setBackgroundColour(Win4, {128,128,128}),
-    Win4Text = wxStaticText:new(Win4, ?wxID_ANY, "",[{pos, {50, 100}}]),
-    wxStaticText:setForegroundColour(Win4Text, ?wxWHITE),
-    Sizer4 = wxBoxSizer:new(?wxHORIZONTAL),
-    wxSizer:add(Sizer4, Win4Text),
-    wxPanel:setSizer(Win4, Sizer4),
+    Win4 = wxListCtrl:new(Notebook, [{style,?wxLC_REPORT}]),
+    wxListCtrl:insertColumn(Win4, 0, "Path",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 400}]),
+    wxListCtrl:insertColumn(Win4, 1, "Size",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 100}]),
+    wxListCtrl:insertColumn(Win4, 2, "Pieces",
+	      [{format, ?wxLIST_FORMAT_LEFT}, {width, 105}]),
+    wxListCtrl:setBackgroundColour(Win4, {128,128,128}),
+    wxListCtrl:setTextColour(Win4, ?wxWHITE),
     wxNotebook:addPage(Notebook, Win4, "File", []),
     wxNotebook:setPageImage(Notebook, 3, 3),
 
@@ -140,7 +142,7 @@ new_window()->
     wxSizer:add(ButtonSizer,ButtonOpen , []),
     wxSizer:addSpacer(ButtonSizer,   5),
     wxSizer:addSpacer(ButtonSizer,  30),
-    wxSizer:add(ButtonSizer,ButtonPause, []),
+    wxSizer:add(ButtonSizer,ButtonStart, []),
     wxSizer:addSpacer(ButtonSizer,   5),
     wxSizer:add(ButtonSizer,ButtonCancel,[]),
     wxSizer:addSpacer(ButtonSizer,  40),
@@ -161,7 +163,7 @@ new_window()->
     wxSizer:add(TextSizer, DownloadText, []),
     wxSizer:addSpacer(TextSizer  ,  10),
     wxSizer:add(TextSizer, DownldStatus, []),
-    wxSizer:addSpacer(TextSizer  ,  60),
+    wxSizer:addSpacer(TextSizer  ,  40),
     wxSizer:addSpacer(InputSizer ,  30),
     wxSizer:addSpacer(InputSizer1,  40),
     wxSizer:add(InputSizer1,StaticBitmap,[]),
@@ -188,20 +190,22 @@ new_window()->
 
 %% @doc Returned value from the State. 
 
-    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}.
+    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1, Win2, Win3,Win4, StaticBitmap,Gauge}.
 
 %% @doc Create a loop which receives messages and respond to them.
 
 loop(State,Manager,Piece_total,Status,PreviousTime)->
-    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1Text, Win2Text, Win3, StaticBitmap,Gauge}= State,
+    {Frame, NameNA, FileSizeNA, DownldStatus,  Win1, Win2, Win3,Win4, StaticBitmap,Gauge}= State,
     
     receive      %% Receiving the close message which is sent to server.
+	%% Exit the loop,Close the window.
 	#wx{event=#wxClose{}} ->   
 	    Manager ! {stop},
-	    wxFrame:destroy(Frame),  %% Close the window.
-            ok;       %% Exit the loop.
+	    wxFrame:destroy(Frame),  
+            ok;  
+	%% File Dialog Open File Button.
         #wx{id= 1, event=#wxCommand{type=command_button_clicked}} ->
-	    case Status of       %% File Dialog Open File Button.
+	    case Status of      
 		0 ->
 		    FD=wxFileDialog:new(Frame,[{message,"   Select torrent file to open  "}]),
 		    case wxFileDialog:showModal(FD) of
@@ -222,52 +226,57 @@ loop(State,Manager,Piece_total,Status,PreviousTime)->
 	    end,
 		    io:format("First case status 0~n"),
 		    loop(State, Manager,Piece_total,1,PreviousTime);
-		
 		1 ->
 		    io:format("First case status 1~n"),
+		    error_message2(1,  Frame),
 		    loop(State, Manager,Piece_total,Status,PreviousTime);
 		2 ->
 		    io:format("First case status 2~n"),
+		    error_message2(1,  Frame),
 		    loop(State, Manager,Piece_total,Status,PreviousTime)
 		    end;
-	#wx{id= 2, event=#wxCommand{type=command_button_clicked}} ->
-	    case Status of
+	%% Start Button
+	#wx{id= 2, event=#wxCommand{type=command_button_clicked}} -> 
+	    case Status of    
 		1 ->
 		    io:format("Case for start ,Process not yet started~n"),
-		    Manager ! {connect, self()},    %% Start Button
+		    Manager ! {connect, self()},   
 		    loop(State, Manager,Piece_total,2,PreviousTime);
 		2 ->
-		     io:format("Case  start ,Process already started~n"),
+		     io:format("Case for  start ,Process already started~n"),
 		     loop(State, Manager,Piece_total,Status,PreviousTime);
 		0 ->
 		     io:format("Case for start ,Process already started~n"),
 		     error_message(2,  Frame),
 		     loop(State, Manager,Piece_total,Status,PreviousTime)
 	    end;
+	%% Cancel Button
 	#wx{id= 3, event=#wxCommand{type=command_button_clicked}} ->
+	    %% wxListControl:clearAll(Win1),
 	    io:format("Manger trying to be stopped"),
 	    exit(Manager,"watvere"),
 	    Managernew = spawn(manager, start, []),
-            loop(State, Managernew,0,0,PreviousTime);  %% Cancel Button
+	    loop(State, Managernew,0,0,PreviousTime);  
+	%% Event when button About is clicked.
 	#wx{id= 4, event=#wxCommand{type=command_button_clicked}} ->
-	    about(4, Frame),   %% Event when button About is clicked.
-            loop(State, Manager,Piece_total,Status,PreviousTime);
+	    about(4, Frame),  
+	    loop(State, Manager,Piece_total,Status,PreviousTime);
+	%% Event when button Help is clicked.
 	#wx{id= 5, event=#wxCommand{type=command_button_clicked}} ->
-	    help(5, Frame),    %% Event when button Help is clicked.
-            loop(State, Manager,Piece_total,Status,PreviousTime);
+	    help(5, Frame),   
+	    loop(State, Manager,Piece_total,Status,PreviousTime);
+	%% Torrent information.
 	{table, Torrent_info} ->	    
 	    wxStaticText:setLabel(NameNA, limit_filename(db:read("FileName"),[],20)),
-	    wxStaticText:setLabel(FileSizeNA, integer_to_list(db:read("length") div 1048576) ++ " MB"),
-	    wxStaticText:setLabel(Win1Text, "\n   File: " ++ db:read("FileName") ++ "\n  
-             Size: " ++ integer_to_list(db:read("length") div 1048576) ++ " MB" ++"\n  
-             Total pieces: " ++ integer_to_list(db:read("NoOfPieces"))),
-	    wxStaticText:setLabel(Win2Text, "\n   Tracker: " ++ db:read("announce")),
+	    wxStaticText:setLabel(FileSizeNA, integer_to_list(db:read("length") div 1048576) ++ " MB"), 
+	    create_list_file(Win1, Win4),
+	    create_list_ctrl(Win2,[db:read("announce")]),
 	    file_image(StaticBitmap, db:read("FileName")),
 	    loop(State, Manager,Piece_total,Status,PreviousTime);
 	{peer_list, Peer_list} ->
 	    create_list_ctrl(Win3, Peer_list),
 	    loop(State, Manager,Piece_total,Status,PreviousTime);
-       
+
  %% @doc Receiving messages from piece manager after every peice 
  %% is downloaded and sets the gauge accordingly
 	{piece_downloaded} ->
