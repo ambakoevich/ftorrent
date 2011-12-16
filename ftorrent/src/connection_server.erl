@@ -76,17 +76,14 @@ loop(Socket) ->
 	    loop(Socket);
 
 	{tcp,_,?KEEP_ALIVE} -> 
-	    io:format("Keep_Alive ~w~n",[?KEEP_ALIVE]),
 	    connection_mngr:send_keepAlive(Socket),
 	    loop(Socket);
 
 	{tcp,_,<<?CHOKE>>} ->
-	    io:format("~nRESPONSE: ~w SHOCKED~n",[<<?CHOKE>>]),
 	    loop(Socket);
 
 	{tcp,_,<<?UNCHOKE>>} ->
             self() ! {ok,unchoke},
-	    io:format("~nRESPONSE: ~w UNSHOCK~n",[<<?UNCHOKE>>]),
 	    loop(Socket);
  
 	{ok,keepAlive}->
@@ -98,8 +95,8 @@ loop(Socket) ->
         {error, drop_connection} ->
 	    manager ! {ip_closed},
 	    io:format("~n NO Response~n");
-	R -> 
-	    io:format("~n>>>> ~p~n", [R]),
+	_ -> 
+	%%    io:format("~n>>>> ~p~n", [R]),
 	    loop(Socket)
     end.
 
