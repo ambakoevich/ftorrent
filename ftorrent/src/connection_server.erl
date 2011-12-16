@@ -1,7 +1,7 @@
-%% @ Author: Rashid Darwish
-%% @ Version v0.1
-%% @doc Created: 14-11-2011
-%% Description: Spawnning new process for each ip, Receiving all msg´s from the peer, 
+%% @author Rashid Darwish
+%% @copyright Framework Studio
+%% @version v0.1
+%% @doc Created: 14-11-2011, Spawnning new process for each ip, Receiving all msg´s from the peer. 
 -module(connection_server).
 -export([start/3,init/3,loop/1]).
 -include("constants.hrl").

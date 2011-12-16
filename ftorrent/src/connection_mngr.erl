@@ -1,8 +1,8 @@
-%% @ Author: Rashid Darwish and David Giorgidze
-%% @ Version v0.1
-%% @doc Created: 14-11-2011
-%% Description: Receiving all requested blocks and building the pieces
-%% Requsting blocks, sending interested/not interested and keep alive msg´s
+%% @author: Rashid Darwish, David Giorgidze
+%% @copyright Framework Studio
+%% @version v0.1
+%% @doc Created: 14-11-2011, Receiving all requested blocks and building the pieces.
+%% And Requsting blocks, sending interested/not interested and keep alive msg´s
 
 -module(connection_mngr).
 -export([receiver/3,send_interested/1,send_not_interested/1,send_keepAlive/1,request_piece/2]).
