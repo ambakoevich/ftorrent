@@ -1,3 +1,7 @@
+%% @ Author: Rashid Darwish
+%% @ Version v0.1
+%% @doc Created: 10-11-2011
+%% Description: A header file contains all constants values used in the application
 -define(PSTRLEN, 19).
 -define(PSTR, "BitTorrent protocol").
 -define(FWSID, lists:concat(["-FWS0001-",random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9),random:uniform(9)])).
