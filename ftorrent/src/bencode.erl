@@ -1,12 +1,13 @@
-%% @author Batbilig Bavuudorj, Zarif Jawad, lasts
+%% @author Batbilig Bavuudorj, Zarif Jawad, 'lasts'
 %% @version v0.1
 %% @doc Created: 01-Oct-2011, Bencode module is responsible for parsing the bencode data.
 %% It is used for parsing .torrent file as well as parsiing tracker response.
-%% Note:Some parts of a module are open source and is written by lasts. Some parts
+%% Note:Some parts of a module are open source and is written by lasts and others. Some parts
 %% are written by members of a Framework Studio.
 
 -module(bencode).
--compile(export_all).
+%% -compile(export_all).
+-export([readtorrent/1, get_lines/1, info_hash/1, info_hash_2/1, sha1/1, bin_to_hexstr/1, divide_byte/2, merge_ip/4, get_ip_list/1]).
 
 %% bencode -> erlang
 to_erlang([]) -> [];
@@ -89,12 +90,6 @@ info_hash_2(Torrent) ->
 
 sha1(X) ->
     crypto:sha(X).
-
-my_split(N, Xs) -> my_split(N, Xs, []).
-my_split(0, Rest, Acc) -> {lists:reverse(Acc), Rest};
-my_split(N, [], Acc) -> {lists:reverse(Acc), []};
-my_split(N, [X,Y|Xs], Acc) when X == 195 -> my_split(N - 1, Xs, [X,Y|Acc]);
-my_split(N, [X|Xs], Acc) -> my_split(N - 1, Xs, [X|Acc]).
 
  
 hex(N) when N < 10 ->
