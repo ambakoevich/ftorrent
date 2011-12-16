@@ -1,7 +1,7 @@
-%% @author: Ionut Trancioveanu
+%% @author: Ionut Trancioveanu, Zarif Jawad, Paulius Vysniauskas.
 %% @copyright Framework Studio
 %% @version: v0.1
-%% @doc Created: 1-Oct-2011, 
+%% @doc Created: 1-Oct-2011, Creating GUI of software.
 
 -module(gui).
 -export([start/1,new_window/0,loop/5]).
