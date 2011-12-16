@@ -5,7 +5,7 @@
 %% Requsting blocks, sending interested/not interested and keep alive msg´s
 
 -module(connection_mngr).
--compile(export_all).
+-export([receiver/3,send_interested/1,send_not_interested/1,send_keepAlive/1,request_piece/2]).
 -include("constants.hrl").
 
 
