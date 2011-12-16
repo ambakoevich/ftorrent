@@ -4,7 +4,7 @@
 %% @doc Created: 20-Nov-2011. Running main application.
 
 -module(main).
--compile(export_all).
+-export([start/0]).
 -include("constants.hrl").
 
 start() ->

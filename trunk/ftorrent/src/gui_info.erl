@@ -5,7 +5,7 @@
 
 -module(gui_info).
 -author("Ionut Trancioveanu").
--compile(export_all).
+-export([about/2,help/2,error_message/2]).
 -include_lib("wx/include/wx.hrl").
 
 %% @doc About dialog box 

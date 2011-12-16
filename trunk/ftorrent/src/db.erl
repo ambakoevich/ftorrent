@@ -7,7 +7,8 @@
 
 -module(db).
 -import(bencode,[readtorrent/1,info_hash/1]).
--compile(export_all).
+-export([start/1, write/3, destroy/0, read/1, delete/2, sum/2, insert_piece_info/1,encode_hash/1,convert/1]).
+-export([insert_url/1,insert_length/1,insert_infohash_binary/1,retreive_hash_binary/1,concat/8,concat/0]).
 -include("constants.hrl").
 
 %% @doc Create ets table and insert torrent file information in it
