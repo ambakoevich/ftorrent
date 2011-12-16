@@ -7,7 +7,7 @@
 
 
 -module(piece_manager).
--compile(export_all).
+-export([start/0, loop/5,select_piece/3,interested/1,not_interested/1,check_size/2,flush_all/0,remove_piece/2,join_pieces/2 ]).
 -include("constants.hrl").
 
 

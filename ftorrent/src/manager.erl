@@ -7,7 +7,7 @@
 
 -module(manager).
 -include("constants.hrl").
--compile(export_all).
+-export([start/0,stop/1,init/0,loop/1,handshake_peers/4]).
 
 %% @doc Start the manager. Calling init function
 start() ->
@@ -64,7 +64,7 @@ handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, Limit) when Limit > 0 ->
     %% Pid ! {start},
     handshake_peers(T, List, Hash, Limit - 1);
 
-handshake_peers([{ip, Ip, port, {Port}}|T], Acc, Hash, 0) ->
+handshake_peers([{ip, _, port, {_}}|_], Acc, _, 0) ->
     Acc;
-handshake_peers([], Acc, Hash, Limit) ->
+handshake_peers([], Acc, _, _) ->
     Acc.
