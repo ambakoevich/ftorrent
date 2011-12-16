@@ -3,7 +3,7 @@
 %% @doc Created: 14-11-2011
 %% Description: Spawnning new process for each ip, Receiving all msg´s from the peer, 
 -module(connection_server).
--compile(export_all).
+-export([start/3,init/3,loop/1]).
 -include("constants.hrl").
 
 %% @doc Starts the connection server
